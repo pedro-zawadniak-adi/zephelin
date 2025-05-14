@@ -1,0 +1,26 @@
+identifier: max32690fthr_custom/max32690/m4
+name: max32690fthr m4
+vendor: adi
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+supported:
+  - gpio
+  - serial
+  - i2c
+  - spi
+  - feather_serial
+  - feather_i2c
+  - feather_spi
+  - flash
+ram: 1024
+flash: 3072
+simulation:
+  - name: renode
+    exec: renode
+testing:
+  renode:
+    uart: sysbus.uart0
+    resc: boards/adi/max32690fthr_custom/support/max32690.resc

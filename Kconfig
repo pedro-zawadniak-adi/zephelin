@@ -1,0 +1,5 @@
+menu "Zephyr Profiling Library"
+
+rsource "zpl/Kconfig"
+
+endmenu

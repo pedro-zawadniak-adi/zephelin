@@ -1,0 +1,31 @@
+identifier: max78002evkit_custom/max78002/m4
+name: max78002evkit m4
+vendor: adi
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+supported:
+  - gpio
+  - serial
+  - trng
+  - i2c
+  - dma
+  - watchdog
+  - spi
+  - adc
+  - counter
+  - rtc_counter
+  - pwm
+  - w1
+  - flash
+ram: 384
+flash: 2560
+simulation:
+  - name: renode
+    exec: renode
+testing:
+  renode:
+    uart: sysbus.uart0
+    resc: boards/adi/max78002evkit_custom/support/max78002.resc

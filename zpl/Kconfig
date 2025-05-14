@@ -1,0 +1,22 @@
+config ZPL
+	bool "Support for Zephyr Profiling Library"
+	help
+	  Say 'Y' if you want to enable support for the Zephyr Profiling
+	  Library.
+
+config ZPL_TRACE
+	bool "Support for integration with Zephyr tracing subsystem"
+	select TRACING
+
+choice
+	prompt "Zephyr Profiling Library trace format"
+	default ZPL_TRACE_FORMAT_PLAINTEXT
+	depends on ZPL_TRACE
+
+config ZPL_TRACE_FORMAT_PLAINTEXT
+	bool "Plaintext format for Zephyr Profiling Library trace"
+
+config ZPL_TRACE_FORMAT_CTF
+	bool "CTF format for Zephyr Profiling Library trace"
+
+endchoice

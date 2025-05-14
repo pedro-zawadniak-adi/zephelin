@@ -1,0 +1,6 @@
+common:
+  tags: profiling
+  integration_platforms:
+    - qemu_cortex_m0
+tests:
+  lib.basic: {}

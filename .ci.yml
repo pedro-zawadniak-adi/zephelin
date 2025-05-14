@@ -1,0 +1,44 @@
+stages:
+  - Test
+
+.test_template: &test_template
+  stage: Test
+  variables:
+    DEBIAN_FRONTEND: noninteractive
+    CMAKE_PREFIX_PATH: /opt/toolchains
+    RENODE_VERSION: "renode_1.15.3+20250320gitdbdcd8ae8_amd64.deb"
+  image: "zephyrprojectrtos/ci:v0.27.5"
+  before_script:
+    - wget "https://dl.antmicro.com/projects/renode/builds/${RENODE_VERSION}" -O renode.deb
+    - sudo dpkg -i renode.deb
+
+Run Tuttest:
+  extends: .test_template
+  script:
+    - pip install git+https://github.com/antmicro/tuttest
+    - tuttest README.md "pip-init" | bash -
+    - tuttest README.md "west-init" | bash -
+    - tuttest README.md "build-samples" | bash -
+
+Run Twister:
+  extends: .test_template
+  parallel:
+    - qemu_cortex_m3
+    - max78002evkit_custom/max78002/m4
+    - max32690fthr_custom/max32690/m4
+  script:
+    - west init -l .
+    - west update
+    - west zephyr-export
+    - west twister -v -p ${CI_PARALLEL_NAME} -T samples -T tests
+
+Run Lint:
+  stage: Test
+  image: "zephyrprojectrtos/ci:v0.27.5"
+  script:
+    - west init -l .
+    - west update
+    - west zephyr-export
+
+    - excludes="-e SysbuildKconfig -e GitLint -e Identity -e ClangFormat"
+    - ../zephyr/scripts/ci/check_compliance.py -c origin/main $excludes

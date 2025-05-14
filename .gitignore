@@ -1,0 +1,14 @@
+# Zephyr
+modules
+.west
+tags
+build/
+.cache/
+*.elf
+twister-out*
+
+# Renode
+*.html
+*.xml
+logs/
+snapshots/
