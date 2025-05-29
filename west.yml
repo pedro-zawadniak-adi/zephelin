@@ -1,4 +1,5 @@
 manifest:
+  group-filter: [+optional]
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
@@ -13,3 +14,4 @@ manifest:
         name-allowlist:
           - cmsis
           - hal_adi
+          - tflite-micro
