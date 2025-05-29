@@ -1,0 +1,31 @@
+From c793ae921213c3f9fbf6cb52b098970e15276acc Mon Sep 17 00:00:00 2001
+From: Krzysztof Sychla <ksychla@antmicro.com>
+Date: Tue, 3 Jun 2025 13:47:35 +0200
+Subject: [PATCH] Comment sys_trace_idle for memory tracing
+
+---
+ subsys/tracing/test/tracing_string_format_test.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/subsys/tracing/test/tracing_string_format_test.c b/subsys/tracing/test/tracing_string_format_test.c
+index 8a53e0bcdb8..63c093b364b 100644
+--- a/subsys/tracing/test/tracing_string_format_test.c
++++ b/subsys/tracing/test/tracing_string_format_test.c
+@@ -201,12 +201,12 @@ void sys_trace_isr_exit_to_scheduler(void)
+ 
+ void sys_trace_idle(void)
+ {
+-	TRACING_STRING("%s\n", __func__);
++	// TRACING_STRING("%s\n", __func__);
+ }
+ 
+ void sys_trace_idle_exit(void)
+ {
+-	TRACING_STRING("%s\n", __func__);
++	// TRACING_STRING("%s\n", __func__);
+ }
+ 
+ void sys_trace_k_condvar_broadcast_enter(struct k_condvar *condvar)
+-- 
+2.48.1
+

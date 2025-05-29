@@ -1,3 +1,4 @@
+#include <zpl/memory_event.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/logging/log.h>
@@ -14,8 +15,7 @@ void zpl_profile_stack(const struct k_thread *thread, void *user_data)
 		return;
 	}
 
-	/* TODO: Temporary solution, to be replaced with custom events in CTF */
-	printk("stack: free: %dB, used: %dB\n", unused, thread->stack_info.size - unused);
+	zpl_emit_memory_event("stack", thread->stack_info.size - unused, unused);
 }
 
 void zpl_profile_heap(void)
@@ -26,8 +26,7 @@ void zpl_profile_heap(void)
 
 	for (i = 0; i < sys_heap_array_get(&ha); i++) {
 		sys_heap_runtime_stats_get(ha[i], &stats);
-		/* TODO: Temporary solution, to be replaced with custom events in CTF */
-		printk("heap free: %dB, used: %dB\n", stats.free_bytes, stats.allocated_bytes);
+		zpl_emit_memory_event("heap", stats.allocated_bytes, stats.free_bytes);
 	}
 }
 

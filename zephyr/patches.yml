@@ -5,3 +5,9 @@ patches:
     author: Filip Kokosinski
     email: fkokosinski@antmicro.com
     date: 2025-05-30
+  - path: zephyr/0001-Comment-sys_trace_idle-for-memory-tracing.patch
+    sha256sum: 1f0c08365bebea54ee26d7f8cc741eba649563be5b262313f4bd540a356a3b9f
+    module: zephyr
+    author: Krzysztof Sychla
+    email: ksychla@antmicro.com
+    date: 2025-06-03

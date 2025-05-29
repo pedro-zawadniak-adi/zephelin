@@ -1,5 +1,6 @@
 #include <zephyr/sys/printk.h>
 #include <zephyr/kernel.h>
+#include <zpl/lib.h>
 
 
 void recursive_function(int counter)
@@ -16,6 +17,7 @@ void recursive_function(int counter)
 
 int main(void)
 {
+	zpl_init();
 	recursive_function(5);
 	return 0;
 }
