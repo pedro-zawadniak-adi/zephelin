@@ -1,0 +1,25 @@
+sample:
+  name: memory_profiling
+common:
+  tags: profiling
+tests:
+  sample.trace.memory_profiling:
+    tags: profiling
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+        - "Counter: 5"
+        - "stack: free: 752B, used: 272B"
+        - "heap free: 164B, used: 28B"
+        - "Counter: 4"
+        - "stack: free: 736B, used: 288B"
+        - "heap free: 132B, used: 56B"
+        - "Counter: 1"
+        - "stack: free: 688B, used: 336B"
+        - "heap free: 36B, used: 140B"
+  sample.trace.memory_profiling.robot:
+    tags: profiling
+    harness: robot
+    harness_config:
+      robot_testsuite: memory_profiling.robot
