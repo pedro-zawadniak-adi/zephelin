@@ -1,0 +1,60 @@
+From e5af50b83e76be9b18ddbf61ce408289c1f55dba Mon Sep 17 00:00:00 2001
+From: Kevin Townsend <kevin.townsend@linaro.org>
+Date: Sun, 13 Nov 2022 23:27:00 +0100
+Subject: [PATCH 02/12] cmake: compiler: Add func_instrumentation flag
+
+Adds a new compiler flag to enable function instrumentation injection
+at compile time for compilers that support it.
+
+Adds support for this flag to GCC when `CONFIG_INSTRUMENTATION` is
+enabled, setting the `-finstrument-functions` flag during compilation.
+
+Signed-off-by: Kevin Townsend <kevin.townsend@linaro.org>
+Signed-off-by: Gustavo Romero <gustavo.romero@linaro.org>
+---
+ CMakeLists.txt                               | 3 +++
+ cmake/compiler/compiler_flags_template.cmake | 3 +++
+ cmake/compiler/gcc/compiler_flags.cmake      | 5 +++++
+ 3 files changed, 11 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 779c533a809..104232cabe8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -486,6 +486,9 @@ zephyr_compile_options($<$<COMPILE_LANGUAGE:CXX>:$<TARGET_PROPERTY:compiler,no_p
+ zephyr_link_libraries_ifndef(CONFIG_NATIVE_LIBRARY
+                              $<TARGET_PROPERTY:linker,no_position_independent>)
+ 
++# @Intent: Enable function instrumentation injection at compile time
++zephyr_compile_options($<$<COMPILE_LANGUAGE:C>:$<TARGET_PROPERTY:compiler,func_instrumentation>>)
++
+ # Allow the user to inject options when calling cmake, e.g.
+ # 'cmake -DEXTRA_CFLAGS="-Werror -Wno-deprecated-declarations" ..'
+ include(cmake/extra_flags.cmake)
+diff --git a/cmake/compiler/compiler_flags_template.cmake b/cmake/compiler/compiler_flags_template.cmake
+index bd8733ce9d0..7711f45eaf2 100644
+--- a/cmake/compiler/compiler_flags_template.cmake
++++ b/cmake/compiler/compiler_flags_template.cmake
+@@ -161,3 +161,6 @@ set_compiler_property(PROPERTY include_file)
+ set_compiler_property(PROPERTY cmse)
+ 
+ set_property(TARGET asm PROPERTY cmse)
++
++# Compiler flag to enable function instrumentation
++set_compiler_property(PROPERTY func_instrumentation)
+diff --git a/cmake/compiler/gcc/compiler_flags.cmake b/cmake/compiler/gcc/compiler_flags.cmake
+index 48afd244ac7..82c1f9afef6 100644
+--- a/cmake/compiler/gcc/compiler_flags.cmake
++++ b/cmake/compiler/gcc/compiler_flags.cmake
+@@ -262,3 +262,8 @@ set_compiler_property(PROPERTY include_file -include)
+ set_compiler_property(PROPERTY cmse -mcmse)
+ 
+ set_property(TARGET asm PROPERTY cmse -mcmse)
++
++# Compiler flag to enable function instrumentation
++if(CONFIG_INSTRUMENTATION)
++set_compiler_property(PROPERTY func_instrumentation -finstrument-functions)
++endif()
+-- 
+2.49.0
+

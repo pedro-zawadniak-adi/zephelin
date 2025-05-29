@@ -1,0 +1,111 @@
+From 7f2c21d2916527ea4d714760c75c51cce1d5efe4 Mon Sep 17 00:00:00 2001
+From: Maciej Sobkowski <msobkowski@antmicro.com>
+Date: Wed, 21 May 2025 13:21:01 +0200
+Subject: [PATCH 10/12] scripts/zaru.py: add flag for demangling C++ symbols
+
+Signed-off-by: Maciej Sobkowski <msobkowski@antmicro.com>
+---
+ scripts/zaru.py | 44 ++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 40 insertions(+), 4 deletions(-)
+
+diff --git a/scripts/zaru.py b/scripts/zaru.py
+index 9b21bb4c7fc..a6411dced95 100755
+--- a/scripts/zaru.py
++++ b/scripts/zaru.py
+@@ -41,6 +41,9 @@ ELF = "zephyr/zephyr.elf"
+ OBJDUMP_CMD = ["objdump", "-t"]
+ 
+ 
++CPPFILT_CMD = ["c++filt"]
++
++
+ SERIAL = "/dev/ttyACM0"
+ 
+ 
+@@ -400,7 +403,7 @@ def get_stream(port):
+                     return ll
+ 
+ 
+-def get_and_print_trace(port, elf, annotate_ret=False, verbose=False):
++def get_and_print_trace(port, elf, demangle, annotate_ret=False, verbose=False):
+     """Get traces from target and print them.
+ 
+     This function uses 'port' to get the binary stream from target and 'elf'
+@@ -508,6 +511,22 @@ def get_and_print_trace(port, elf, annotate_ret=False, verbose=False):
+         while current_event:
+             cur_type, cur_func, cur_thread_id, cur_cpu, cur_mode, cur_ts, cur_tn = current_event.values()
+ 
++            if demangle:
++
++                cmd = CPPFILT_CMD + [ cur_func ]
++
++                try:
++                    func_demangled = subprocess.check_output(cmd, text=True).strip()
++                except subprocess.CalledProcessError:
++                    cmd = " ".join(cmd)
++                    print(f"'{cmd}' failed execution. Check if it is properly installed.")
++                    sys.exit(2)
++                except FileNotFoundError:
++                    sys.exit(3)
++                    print(f"Could not find executable '{CPPFILT_CMD[0]}'. Please install it.")
++
++                cur_func = func_demangled
++
+             line = cur_tn.rjust(20) + cur_thread_id.rjust(14) +  " " + cur_cpu.rjust(3) + ") " + cur_mode.rjust(4) + " | " + cur_ts.rjust(12) + " ns |"
+             line_buffer_first_half.append(line)
+ 
+@@ -604,7 +623,7 @@ def get_and_print_trace(port, elf, annotate_ret=False, verbose=False):
+         return len(traces)
+ 
+ 
+-def export_to_perfetto(port, elf, output_filename, verbose=False):
++def export_to_perfetto(port, elf, output_filename, demangle, verbose=False):
+     """Get traces from target and save them in Tracer Event Format for Perfetto ingestion.
+ 
+     This function uses 'port' to get the binary stream from target and 'elf'
+@@ -777,6 +796,22 @@ def export_to_perfetto(port, elf, output_filename, verbose=False):
+                 trace_events.append(trace_event)
+ 
+ 
++            if demangle:
++
++                cmd = CPPFILT_CMD + [ func ]
++
++                try:
++                    func_demangled = subprocess.check_output(cmd, text=True).strip()
++                except subprocess.CalledProcessError:
++                    cmd = " ".join(cmd)
++                    print(f"'{cmd}' failed execution. Check if it is properly installed.")
++                    sys.exit(2)
++                except FileNotFoundError:
++                    sys.exit(3)
++                    print(f"Could not find executable '{CPPFILT_CMD[0]}'. Please install it.")
++
++                func = func_demangled
++
+             trace_event = {"ts": ts, "pid": tid, "tid": tid, "ph": ph, "name": func}
+             trace_events.append(trace_event)
+ 
+@@ -983,9 +1018,9 @@ def trace(args):
+ 
+     elf_file = get_elf_file(args, args.verbose)
+     if args.perfetto:
+-        num_traces = export_to_perfetto(sport, elf_file, args.output, args.verbose)
++        num_traces = export_to_perfetto(sport, elf_file, args.output, args.demangle, args.verbose)
+     else:
+-        num_traces = get_and_print_trace(sport, elf_file, args.annotation, args.verbose)
++        num_traces = get_and_print_trace(sport, elf_file, args.demangle, args.annotation, args.verbose)
+ 
+     if num_traces == 0:
+         print_message_on_empty_buffer("trace")
+@@ -1047,6 +1082,7 @@ if __name__ == "__main__":
+     trace_parser.add_argument('--couple', '-c', metavar="FUNC_NAME", type=str, help="set both trigger and stopper to FUNC_NAME.")
+     trace_parser.add_argument('--perfetto', '-p', action='store_true', help="export traces to Perfetto TraceViewer UI (Event Trace Format).")
+     trace_parser.add_argument('--output', '-o', type=str, default=PERFETTO_FILENAME, help=f"output filename. Default to '{PERFETTO_FILENAME}'.")
++    trace_parser.add_argument('--demangle', '-d', action='store_true', help=f"demangle C++ symbols.")
+     trace_parser.add_argument('--annotation', '-a', action='store_false', default=True, help="disable function name annotation in function returns.")
+     trace_parser.set_defaults(func=trace)
+ 
+-- 
+2.49.0
+

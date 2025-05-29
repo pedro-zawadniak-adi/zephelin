@@ -1,0 +1,27 @@
+From 5f6f9eb70cdc0f590d1df3b6231e9256291c2114 Mon Sep 17 00:00:00 2001
+From: Maciej Sobkowski <msobkowski@antmicro.com>
+Date: Fri, 23 May 2025 14:38:49 +0200
+Subject: [PATCH 11/12] instrumentation: increase trace buffer upper limit to
+ 4GB
+
+Signed-off-by: Maciej Sobkowski <msobkowski@antmicro.com>
+---
+ subsys/instrumentation/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/subsys/instrumentation/Kconfig b/subsys/instrumentation/Kconfig
+index af4d4f13853..a68b52631f6 100644
+--- a/subsys/instrumentation/Kconfig
++++ b/subsys/instrumentation/Kconfig
+@@ -42,7 +42,7 @@ config INSTRUMENTATION_MODE_CALLGRAPH_TRACE_BUFFER_SIZE
+ 	# Lower limit (in bytes) must match the biggest record item size. For
+ 	# details about the sizes, please see instrumentation.h for the record
+ 	# struct sizes.
+-	range 20 65536
++	range 20 4294967296
+ 	help
+ 	  Size of the trace buffer. The trace buffer is used to buffer the
+ 	  tracing events and has two working modes: it can be configure either
+-- 
+2.49.0
+

@@ -1,0 +1,94 @@
+From 52707c976da2dbd8e58734c01cfd2f0f398783b9 Mon Sep 17 00:00:00 2001
+From: Maciej Sobkowski <msobkowski@antmicro.com>
+Date: Mon, 19 May 2025 16:46:24 +0200
+Subject: [PATCH 08/12] Revert "kernel: sched: Optimize sleeping function"
+
+This reverts commit 07f8c46e37c95c74c860bfd4c1d8c00e86c4ad05.
+
+Signed-off-by: Maciej Sobkowski <msobkowski@antmicro.com>
+---
+ kernel/include/timeout_q.h | 17 -----------------
+ kernel/sched.c             |  4 ----
+ kernel/timeout.c           |  1 -
+ 3 files changed, 22 deletions(-)
+
+diff --git a/kernel/include/timeout_q.h b/kernel/include/timeout_q.h
+index 6ae627aadbd..87aa41d94e3 100644
+--- a/kernel/include/timeout_q.h
++++ b/kernel/include/timeout_q.h
+@@ -22,9 +22,6 @@ extern "C" {
+ 
+ #ifdef CONFIG_SYS_CLOCK_EXISTS
+ 
+-/* Value written to dticks when timeout is aborted. */
+-#define TIMEOUT_DTICKS_ABORTED (IS_ENABLED(CONFIG_TIMEOUT_64BIT) ? INT64_MIN : INT32_MIN)
+-
+ static inline void z_init_timeout(struct _timeout *to)
+ {
+ 	sys_dnode_init(&to->node);
+@@ -43,12 +40,6 @@ static inline bool z_is_inactive_timeout(const struct _timeout *to)
+ 	return !sys_dnode_is_linked(&to->node);
+ }
+ 
+-static inline bool z_is_aborted_timeout(const struct _timeout *to)
+-{
+-	/* When timeout is aborted then dticks is set to special value. */
+-	return to->dticks == TIMEOUT_DTICKS_ABORTED;
+-}
+-
+ static inline void z_init_thread_timeout(struct _thread_base *thread_base)
+ {
+ 	z_init_timeout(&thread_base->timeout);
+@@ -66,12 +57,6 @@ static inline void z_abort_thread_timeout(struct k_thread *thread)
+ 	z_abort_timeout(&thread->base.timeout);
+ }
+ 
+-static inline bool z_is_aborted_thread_timeout(struct k_thread *thread)
+-{
+-
+-	return z_is_aborted_timeout(&thread->base.timeout);
+-}
+-
+ int32_t z_get_next_timeout_expiry(void);
+ 
+ k_ticks_t z_timeout_remaining(const struct _timeout *timeout);
+@@ -81,9 +66,7 @@ k_ticks_t z_timeout_remaining(const struct _timeout *timeout);
+ /* Stubs when !CONFIG_SYS_CLOCK_EXISTS */
+ #define z_init_thread_timeout(thread_base) do {} while (false)
+ #define z_abort_thread_timeout(to) do {} while (false)
+-#define z_is_aborted_thread_timeout(to) false
+ #define z_is_inactive_timeout(to) 1
+-#define z_is_aborted_timeout(to) false
+ #define z_get_next_timeout_expiry() ((int32_t) K_TICKS_FOREVER)
+ #define z_set_timeout_expiry(ticks, is_idle) do {} while (false)
+ 
+diff --git a/kernel/sched.c b/kernel/sched.c
+index 995ded3d322..6a67fc06fb6 100644
+--- a/kernel/sched.c
++++ b/kernel/sched.c
+@@ -1102,10 +1102,6 @@ static int32_t z_tick_sleep(k_timeout_t timeout)
+ 
+ 	(void)z_swap(&_sched_spinlock, key);
+ 
+-	if (!z_is_aborted_thread_timeout(_current)) {
+-		return 0;
+-	}
+-
+ 	/* We require a 32 bit unsigned subtraction to care a wraparound */
+ 	uint32_t left_ticks = expected_wakeup_ticks - sys_clock_tick_get_32();
+ 
+diff --git a/kernel/timeout.c b/kernel/timeout.c
+index f698a0779e5..0336609d7c6 100644
+--- a/kernel/timeout.c
++++ b/kernel/timeout.c
+@@ -167,7 +167,6 @@ int z_abort_timeout(struct _timeout *to)
+ 			bool is_first = (to == first());
+ 
+ 			remove_timeout(to);
+-			to->dticks = TIMEOUT_DTICKS_ABORTED;
+ 			ret = 0;
+ 			if (is_first) {
+ 				sys_clock_set_timeout(next_timeout(elapsed()), false);
+-- 
+2.49.0
+

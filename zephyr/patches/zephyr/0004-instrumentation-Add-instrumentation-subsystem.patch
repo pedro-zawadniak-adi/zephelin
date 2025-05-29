@@ -1,0 +1,1628 @@
+From ca54f9d41fd504122dd6cccd21b1c5bfecca41c1 Mon Sep 17 00:00:00 2001
+From: Gustavo Romero <gustavo.romero@linaro.org>
+Date: Thu, 27 Apr 2023 20:17:23 +0000
+Subject: [PATCH 04/12] instrumentation: Add instrumentation subsystem
+
+This commit adds the instrumentation subsystem.
+
+Signed-off-by: Gustavo Romero <gustavo.romero@linaro.org>
+Signed-off-by: Kevin Townsend <kevin.townsend@linaro.org>
+---
+ .../zephyr/instrumentation/instrumentation.h  | 198 ++++++
+ .../instrumentation_ringbuffer.h              |  33 +
+ .../instrumentation_timestamp.h               |  26 +
+ subsys/CMakeLists.txt                         |   1 +
+ subsys/Kconfig                                |   1 +
+ subsys/instrumentation/CMakeLists.txt         |  31 +
+ subsys/instrumentation/Kconfig                | 126 ++++
+ subsys/instrumentation/common/instr_common.c  | 567 ++++++++++++++++++
+ .../handlers/instr_handlers_gcc.c             |  65 ++
+ .../instrumentation/ringbuffer/ringbuffer.c   | 295 +++++++++
+ subsys/instrumentation/timestamp/timestamp.c  |  30 +
+ subsys/instrumentation/transport/uart.c       | 136 +++++
+ 12 files changed, 1509 insertions(+)
+ create mode 100644 include/zephyr/instrumentation/instrumentation.h
+ create mode 100644 include/zephyr/instrumentation/instrumentation_ringbuffer.h
+ create mode 100644 include/zephyr/instrumentation/instrumentation_timestamp.h
+ create mode 100644 subsys/instrumentation/CMakeLists.txt
+ create mode 100644 subsys/instrumentation/Kconfig
+ create mode 100644 subsys/instrumentation/common/instr_common.c
+ create mode 100644 subsys/instrumentation/handlers/instr_handlers_gcc.c
+ create mode 100644 subsys/instrumentation/ringbuffer/ringbuffer.c
+ create mode 100644 subsys/instrumentation/timestamp/timestamp.c
+ create mode 100644 subsys/instrumentation/transport/uart.c
+
+diff --git a/include/zephyr/instrumentation/instrumentation.h b/include/zephyr/instrumentation/instrumentation.h
+new file mode 100644
+index 00000000000..f3d710cd01b
+--- /dev/null
++++ b/include/zephyr/instrumentation/instrumentation.h
+@@ -0,0 +1,198 @@
++/*
++ * Copyright 2023 Linaro
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#ifndef ZEPHYR_INCLUDE_INSTRUMENTATION_INSTRUMENTATION_H_
++#define ZEPHYR_INCLUDE_INSTRUMENTATION_INSTRUMENTATION_H_
++
++#include <zephyr/kernel.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#if !defined(__no_instrumentation__)
++#error "No toolchain support for __no_instrumentation__"
++#endif
++
++/**
++ * @brief Instrumentation event record types.
++ */
++enum instr_event_types {
++	INSTR_EVENT_ENTRY = 0,	/* Callee entry event record, followed by instr_event. */
++	INSTR_EVENT_EXIT,	/* Callee exit event record, followed by instr_event. */
++	INSTR_EVENT_PROFILE,	/* Profile events */
++	INSTR_EVENT_SCHED_IN,	/* Thread switched in scheduler event */
++	INSTR_EVENT_SCHED_OUT,	/* Thread switched out scheduler event */
++	INSTR_EVENT_NUM,	/* Add more events above this one */
++	INSTR_EVENT_INVALID	/* Invalid or no event generated after promotion */
++} __packed;
++
++/**
++ * @brief Header for the event records.
++ */
++struct instr_header {
++	/* Event type */
++	enum instr_event_types type;
++} __packed;
++
++struct instr_event_context {
++	/** Arch-specific mode indicator (thread mode, interrupt mode, etc.). */
++	uint8_t mode : 3;
++	/** CPU number. */
++	uint8_t cpu : 3;
++	/** Reserved for future use. */
++	uint8_t rsvd : 2;
++	/** Thread ID (correlate values with thread lookup table). */
++	void *thread_id;
++#ifdef CONFIG_THREAD_NAME
++	/* Thread name (that can be compacted with the correlate lookup table). */
++	char thread_name[20];
++#endif
++} __packed;
++
++/**
++ * @brief Event records and associated payloads. Payloads are determined based
++ *        on the code and additional fields in the header.
++ */
++struct instr_record {
++	struct instr_header header;
++	void *callee;
++	void *caller;
++	uint64_t timestamp;
++	union {
++		struct instr_event_context context; /* Context data */
++		/* Add more payloads here */
++	};
++} __packed;
++
++/**
++ * @brief Checks if tracing feature is available.
++ *
++ */
++bool instr_tracing_supported(void);
++
++/**
++ * @brief Checks if profiling feature is available.
++ *
++ */
++bool instr_profiling_supported(void);
++
++/**
++ * @brief Checks if subsystem is ready to be initialized. Must called be before
++ *        instr_init().
++ */
++bool instr_fundamentals_initialized(void);
++
++/**
++ * @brief Performs initialisation required by the system.
++ */
++int instr_init(void);
++
++/**
++ * @brief Tells if instrumentation subsystem is properly initialized.
++ */
++bool instr_initialized(void);
++
++/**
++ * @brief Tells if instrumentation is enabled, i.e. can be turned on.
++ */
++bool instr_enabled(void);
++
++/**
++ * @brief Enables instrumentation.
++ */
++int instr_enable(void);
++
++/**
++ * @brief Disables instrumentation.
++ */
++int instr_disable(void);
++
++/**
++ * @brief Turns on instrumentation (start recording events).
++ */
++int instr_turn_on(void);
++
++/**
++ * @brief Turns off instrumentation (stop recording events).
++ */
++int instr_turn_off(void);
++
++/**
++ * @brief Tells if instrumentation is turned on.
++ */
++bool instr_turned_on(void);
++
++/**
++ * @brief Tells if instrumentation can collect traces.
++ */
++bool instr_trace_enabled(void);
++
++/**
++ * @brief Tells if instrumentation can collect profile info.
++ */
++bool instr_profile_enabled(void);
++
++/**
++ * @brief Dumps the buffered contents via UART (tracing).
++ */
++void instr_dump_buffer_uart(void);
++
++/**
++ * @brief Dumps the delta accumulator array via UART (profiling).
++ */
++void instr_dump_deltas_uart(void);
++
++/**
++ * @brief Shared callabck handler to process entry/exit events.
++ *
++ * @param opcode The type of event to process.
++ * @param func   Address of the function being called.
++ * @param caller Address of the function caller.
++ */
++void instr_event_handler(enum instr_event_types opcode, void *func, void *caller);
++
++/**
++ * @brief Given a function address, set it as the trigger function, i.e. when
++ *        the function is called it will turn on the instrumentation.
++ *
++ * @param callee The function address
++ */
++void instr_set_trigger_func(void *callee);
++
++/**
++ * @brief Given a function address, set it as the stopper function, i.e. when
++ *        the function exits it will turn off the instrumentation.
++ *
++ * @param callee The function address
++ */
++void instr_set_stop_func(void *callee);
++
++/**
++ * @brief Get the trigger function address.
++ *
++ */
++void *instr_get_trigger_func(void);
++
++/**
++ * @brief Get the stopper function address.
++ *
++ */
++void *instr_get_stop_func(void);
++
++/* This is used in __cyg_profile_func_exit() event handler. 'main' is kind
++ * special in the sense the handler monitors it for exit. If it exists the
++ * instrumentation is automatically disabled, so no code is necessary to be
++ * added to the application code to disable instrumentation when application
++ * code returns.
++ */
++extern int main(void);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /* ZEPHYR_INCLUDE_INSTRUMENTATION_INSTRUMENTATION_H_ */
+diff --git a/include/zephyr/instrumentation/instrumentation_ringbuffer.h b/include/zephyr/instrumentation/instrumentation_ringbuffer.h
+new file mode 100644
+index 00000000000..9fe607e86e5
+--- /dev/null
++++ b/include/zephyr/instrumentation/instrumentation_ringbuffer.h
+@@ -0,0 +1,33 @@
++/*
++ * Copyright 2023 Linaro
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#ifndef ZEPHYR_INCLUDE_INSTRUMENTATION_RINGBUFFER_H_
++#define ZEPHYR_INCLUDE_INSTRUMENTATION_RINGBUFFER_H_
++
++#include <stdio.h>
++#include <inttypes.h>
++#include <assert.h>
++#include <string.h>
++
++#include <zephyr/instrumentation/instrumentation.h>
++
++#define DEBUG 0
++
++void instr_rb_init(void);
++
++struct instr_record *instr_rb_put_item_claim(enum instr_event_types type);
++void instr_rb_put_item_finish(enum instr_event_types type);
++int instr_rb_put_item_wrapping(struct instr_record *record);
++
++struct instr_record *instr_rb_get_item_claim(void);
++void instr_rb_get_item_finish(struct instr_record *record);
++struct instr_record *instr_rb_get_item(struct instr_record *record);
++int instr_rb_get_item_wrapping(struct instr_record *record);
++
++/* TODO(gromero): get_item_size() probably not for external use. */
++size_t instr_rb_get_item_size(enum instr_event_types type);
++
++#endif
+diff --git a/include/zephyr/instrumentation/instrumentation_timestamp.h b/include/zephyr/instrumentation/instrumentation_timestamp.h
+new file mode 100644
+index 00000000000..3f53856a5e4
+--- /dev/null
++++ b/include/zephyr/instrumentation/instrumentation_timestamp.h
+@@ -0,0 +1,26 @@
++/*
++ * Copyright 2023 Linaro
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#ifndef _INSTRUMENTATION_TIMESTAMP_H
++#define _INSTRUMENTATION_TIMESTAMP_H
++
++#include <inttypes.h>
++
++#include <zephyr/timing/timing.h>
++
++/**
++ * @brief Initialize timestamp
++ *
++ */
++int instr_timestamp_init(void);
++
++/**
++ * @brief Get current timestamp in nanoseconds
++ *
++ */
++uint64_t instr_timestamp_ns(void);
++
++#endif /* _INSTRUMENTATION_TIMESTAMP_H */
+diff --git a/subsys/CMakeLists.txt b/subsys/CMakeLists.txt
+index a0a2bc828cf..51c6d385412 100644
+--- a/subsys/CMakeLists.txt
++++ b/subsys/CMakeLists.txt
+@@ -16,6 +16,7 @@ add_subdirectory(canbus)
+ add_subdirectory(debug)
+ add_subdirectory(fb)
+ add_subdirectory(fs)
++add_subdirectory(instrumentation)
+ add_subdirectory(ipc)
+ add_subdirectory(logging)
+ add_subdirectory(mem_mgmt)
+diff --git a/subsys/Kconfig b/subsys/Kconfig
+index a85bda6ece4..3626205044c 100644
+--- a/subsys/Kconfig
++++ b/subsys/Kconfig
+@@ -21,6 +21,7 @@ source "subsys/emul/Kconfig"
+ source "subsys/fb/Kconfig"
+ source "subsys/fs/Kconfig"
+ source "subsys/input/Kconfig"
++source "subsys/instrumentation/Kconfig"
+ source "subsys/ipc/Kconfig"
+ source "subsys/jwt/Kconfig"
+ source "subsys/llext/Kconfig"
+diff --git a/subsys/instrumentation/CMakeLists.txt b/subsys/instrumentation/CMakeLists.txt
+new file mode 100644
+index 00000000000..db9059248bf
+--- /dev/null
++++ b/subsys/instrumentation/CMakeLists.txt
+@@ -0,0 +1,31 @@
++# Copyright 2023 Linaro
++# SPDX-License-Identifier: Apache-2.0
++
++zephyr_sources_ifdef(CONFIG_INSTRUMENTATION
++  common/instr_common.c
++  timestamp/timestamp.c
++  transport/uart.c
++)
++
++zephyr_sources_ifdef(CONFIG_INSTRUMENTATION_MODE_CALLGRAPH ringbuffer/ringbuffer.c)
++
++if (CONFIG_INSTRUMENTATION)
++  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
++    zephyr_sources(handlers/instr_handlers_gcc.c)
++  else()
++    message(FATAL_ERROR "CONFIG_INSTRUMENTATION unsupported by this compiler.")
++  endif()
++
++  if (CONFIG_INSTRUMENTATION_EXCLUDE_FUNCTION_LIST)
++	  zephyr_compile_options(-finstrument-functions-exclude-file-list=${CONFIG_INSTRUMENTATION_EXCLUDE_FUNCTION_LIST})
++  endif()
++
++  if (CONFIG_INSTRUMENTATION_EXCLUDE_FILE_LIST)
++	  zephyr_compile_options(-finstrument-functions-exclude-function-list=${CONFIG_INSTRUMENTATION_EXCLUDE_FILE_LIST})
++  endif()
++
++endif()
++
++zephyr_compile_definitions_ifdef(CONFIG_INSTRUMENTATION INSTR_TRIGGER_FUNCTION=${CONFIG_INSTRUMENTATION_TRIGGER_FUNCTION})
++zephyr_compile_definitions_ifdef(CONFIG_INSTRUMENTATION INSTR_STOPPER_FUNCTION=${CONFIG_INSTRUMENTATION_STOPPER_FUNCTION})
++zephyr_include_directories_ifdef(CONFIG_INSTRUMENTATION include)
+diff --git a/subsys/instrumentation/Kconfig b/subsys/instrumentation/Kconfig
+new file mode 100644
+index 00000000000..af4d4f13853
+--- /dev/null
++++ b/subsys/instrumentation/Kconfig
+@@ -0,0 +1,126 @@
++# Copyright 2023 Linaro
++# SPDX-License-Identifier: Apache-2.0
++
++# Instrumentation configuration options
++
++config INSTRUMENTATION
++	bool "Compiler Instrumentation Support"
++	select REBOOT
++	select RETAINED_MEM
++	select RETAINED_MEM_ZEPHYR_RAM
++	select RETAINED_MEM_MUTEX_FORCE_DISABLE
++	select RETENTION
++	select RETENTION_MUTEX_FORCE_DISABLE
++	select UART_INTERRUPT_DRIVEN
++	help
++	  Enable compiler-managed runtime system instrumentation. This requires
++	  a compiler that supports function instrumentation, and a backend for
++	  capturing and processing those instrumentation events from the target,
++	  like a serial port.
++
++if INSTRUMENTATION
++
++config MAIN_STACK_SIZE
++	int "Main stack size"
++	default 4096
++
++config INSTRUMENTATION_MODE_CALLGRAPH
++	bool "Call graph mode (Tracing)"
++	default y
++	select THREAD_NAME
++	select TRACING
++	select TIMING_FUNCTIONS
++	help
++	  Enables reconstruction of function call graphs and the observation
++	  of context switches (threads), within the limits of the trace buffer
++	  size.
++
++config INSTRUMENTATION_MODE_CALLGRAPH_TRACE_BUFFER_SIZE
++	int "Size of the trace buffer (bytes)"
++	depends on INSTRUMENTATION_MODE_CALLGRAPH
++	default 12000
++	# Lower limit (in bytes) must match the biggest record item size. For
++	# details about the sizes, please see instrumentation.h for the record
++	# struct sizes.
++	range 20 65536
++	help
++	  Size of the trace buffer. The trace buffer is used to buffer the
++	  tracing events and has two working modes: it can be configure either
++	  as a simple buffer or as a ring buffer (overwriting mode).
++
++config INSTRUMENTATION_MODE_CALLGRAPH_BUFFER_OVERWRITE
++	bool "Trace buffer overwriting mode"
++	depends on INSTRUMENTATION_MODE_CALLGRAPH
++	default y
++	help
++	  If the trace buffer is set as overwriting it works as a ring buffer.
++	  In this working mode if the buffer gets full old records will be
++	  overwritten by the newer records. This mode allows recording the most
++	  recent tracing events at the expense of losing the old ones. If this
++	  mode is not selected, then once the buffer is full tracing stops.
++
++config INSTRUMENTATION_MODE_STATISTICAL
++	bool "Statistical mode (Profiling)"
++	select TIMING_FUNCTIONS
++	default y
++	help
++	  Enables statistical profiling of the runtime system, tracking total
++	  execution time of the number of functions equal to
++	  INSTRUMENTATION_MODE_STATISTICAL_MAX_NUM_FUNC.
++
++config INSTRUMENTATION_MODE_STATISTICAL_MAX_NUM_FUNC
++	int "Maximum number of functions to collect statistics from"
++	depends on INSTRUMENTATION_MODE_STATISTICAL
++	default 256
++	range 1 4096
++	help
++	  Maximum number of functions to collect statistics from. Set the
++	  maximum number of functions to collect the total execution time for
++	  each function called in the region defined by 'trigger' and 'stopper'
++	  instrumentation points.
++
++config INSTRUMENTATION_MODE_STATISTICAL_MAX_CALL_DEPTH
++	int "Maximum call depth"
++	depends on INSTRUMENTATION_MODE_STATISTICAL
++	default 65535
++	range 1 65535
++	help
++	  The maximum number of times a function can be recursively called
++	  before profile data (delta time) stops being collected.
++
++config INSTRUMENTATION_TRIGGER_FUNCTION
++	string "Default trigger function used to turn on instrumentation"
++	default "main"
++	help
++	  Sets the trigger function. Instrumentation (tracing and profiling) is
++	  only turned on when the trigger function is called. The trigger
++	  function can be changed at runtime via the 'zaru' CLI tool.
++
++config INSTRUMENTATION_STOPPER_FUNCTION
++	string "Default stopper function used to turn off instrumentation"
++	default "main"
++	help
++	  Sets the stopper function. Instrumentation (tracing and profiling) is
++	  only turned off when the trigger function returns. The stopper
++	  function can be changed at runtime via the 'zaru' CLI tool.
++
++config INSTRUMENTATION_EXCLUDE_FUNCTION_LIST
++	string "Exclude function list"
++	depends on INSTRUMENTATION_MODE_CALLGRAPH || INSTRUMENTATION_MODE_STATISTICAL
++	help
++	  Set the list of function names to be excluded from instrumentation.
++	  The function name to be matched is its user-visible name. The match is
++	  done on substrings: if the function name in the list is a substring of
++	  a function name, it is considered to be a match. The function names in
++	  the list are separate by a comman, for instance: sym0,sym1,...
++
++config INSTRUMENTATION_EXCLUDE_FILE_LIST
++	string "Exclude file list"
++	depends on INSTRUMENTATION_MODE_CALLGRAPH || INSTRUMENTATION_MODE_STATISTICAL
++	help
++	  Set the list of files that are excluded from instrumentation. The
++	  match is done on substrings: if the file parameter is a substring of
++	  the file name, it is considered to be a match. The files in the list
++	  are separate by a comma, for instance: file0,file1,...
++
++endif
+diff --git a/subsys/instrumentation/common/instr_common.c b/subsys/instrumentation/common/instr_common.c
+new file mode 100644
+index 00000000000..ad8e09d334e
+--- /dev/null
++++ b/subsys/instrumentation/common/instr_common.c
+@@ -0,0 +1,567 @@
++/*
++ * Copyright 2023 Linaro
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <stdio.h>
++#include <string.h>
++
++#include <zephyr/instrumentation/instrumentation.h>
++#include <zephyr/instrumentation/instrumentation_ringbuffer.h>
++#include <zephyr/instrumentation/instrumentation_timestamp.h>
++
++#include <zephyr/device.h>
++#include <zephyr/drivers/uart.h>
++#include <zephyr/kernel.h>
++#include <zephyr/kernel_structs.h>
++#include <zephyr/retention/retention.h>
++#include <zephyr/sys/reboot.h>
++
++#include <kernel_internal.h>
++#include <ksched.h>
++
++/*
++ * Memory buffer to store instrumentation event records has the following modes:
++ *
++ * Callgraph (tracing) ring buffer (default): Replace oldest entries when buffer
++ * is full.
++ *
++ * Callgraph (tracing) fixed buffer: Stop buffering events when the buffer is
++ * full, ensuring we have a callgraph from reset point or from wherever the
++ * trigger function was called for the first time.
++ *
++ * Statistical (profiling): Buffer functions until out of memory.
++ *
++ */
++
++const struct device *retention0 = DEVICE_DT_GET(DT_NODELABEL(retention0));
++
++static bool _instr_initialized;
++static bool _instr_enabled;
++static bool _instr_on;
++static bool _instr_tracing_disabled;
++static bool _instr_profiling_disabled;
++static bool _instr_tracing_supported = IS_ENABLED(CONFIG_INSTRUMENTATION_MODE_CALLGRAPH);
++static bool _instr_profiling_supported = IS_ENABLED(CONFIG_INSTRUMENTATION_MODE_STATISTICAL);
++
++#if defined(CONFIG_INSTRUMENTATION_MODE_STATISTICAL)
++/*
++ * Entry for discovered functions. The functions are added to 'disco_func' array
++ * as they are called in the execution flow, hence "discovered" functions. Once
++ * NUM_DISCO_FUNCS is reached, additional new executed functions are ignored and
++ * no profiling information is collected for them.
++ */
++
++#define MAX_CALL_DEPTH CONFIG_INSTRUMENTATION_MODE_STATISTICAL_MAX_CALL_DEPTH
++struct disco_func_entry {
++	timing_t entry_timestamp;		/* Timestamp at function entry */
++	uint64_t delta_t;			/* Accumulated (per function) delta time */
++	void *addr;				/* Function address/ID */
++	uint16_t call_depth;			/* Call depth */
++};
++
++#define MAX_NUM_DISCO_FUNC CONFIG_INSTRUMENTATION_MODE_STATISTICAL_MAX_NUM_FUNC
++static int num_disco_func;
++struct disco_func_entry disco_func[MAX_NUM_DISCO_FUNC] = { 0 };
++
++/* To track the number of unbalanced/spurious entry/exist pairs, for debugging */
++int unbalanced;
++#endif
++
++/* See instr_fundamentals_initialized() */
++uint16_t magic = 0xABBA;
++
++/* Defined in Kconfig */
++extern int INSTR_TRIGGER_FUNCTION(void);
++extern int INSTR_STOPPER_FUNCTION(void);
++
++/* Default trigger and stopper addresses, from Kconfig */
++void *k_trigger_callee = INSTR_TRIGGER_FUNCTION;
++void *k_stopper_callee = INSTR_STOPPER_FUNCTION;
++
++/* Current (live) trigger and stopper addresses */
++void *trigger_callee;
++void *stopper_callee;
++
++bool instr_tracing_supported(void)
++{
++	return _instr_tracing_supported;
++}
++
++bool instr_profiling_supported(void)
++{
++	return _instr_profiling_supported;
++}
++
++__no_instrumentation__
++int instr_init(void)
++{
++	/*
++	 * This function can never be called before RAM is properly initialized. See comment in
++	 * instr_fundamentals_initialized() for more details.
++	 */
++	assert(magic == 0xABBA);
++
++	/*
++	 * This flag needs to be set before calling any other function, otherwise it will cause an
++	 * infinite recursion in the handler since instr_initialized() will return 0 and
++	 * instr_init() will be called again.
++	 */
++	_instr_initialized = 1;
++
++	if (retention_is_valid(retention0)) {
++		/* Retained mem is already initialized, load trigger and stopper addresses */
++		retention_read(retention0, 0, (uint8_t *)&trigger_callee,
++				sizeof(trigger_callee));
++		retention_read(retention0, sizeof(trigger_callee), (uint8_t *)&stopper_callee,
++				sizeof(stopper_callee));
++	} else {
++		/* Retained mem not initialized, so write defaults */
++		trigger_callee = k_trigger_callee;
++		retention_write(retention0, 0, (const uint8_t *)&trigger_callee,
++				sizeof(trigger_callee));
++		stopper_callee = k_stopper_callee;
++		retention_write(retention0, sizeof(trigger_callee),
++				(const uint8_t *)&stopper_callee, sizeof(stopper_callee));
++	}
++
++#if defined(CONFIG_INSTRUMENTATION_MODE_CALLGRAPH)
++	/* Initialize ring buffer */
++	instr_rb_init();
++#endif
++
++	/* Init and start counters for timestamping */
++	instr_timestamp_init();
++
++	/*
++	 * Enable instrumentation. When instrumentation is enabled it means it can be turned on and
++	 * off. It will first be turned on when the trigger function is first called and turned off
++	 * when stopper function exits. This two step mechanism allow disabling instrumentation at
++	 * runtime in critical sections inside the instrumentation code by calling instr_disable()/
++	 * instr_enable() at runtime, hence avoiding infinite loop and having to exclude a function
++	 * at compile time. In other words, it allows a better granularity for enabling/disabling
++	 * the instrumentation.
++	 */
++	instr_enable();
++
++	return 0;
++}
++
++__no_instrumentation__
++bool instr_initialized(void)
++{
++	return _instr_initialized;
++}
++
++/*
++ * Instrumentation can only be used when RAM is correctly initialized in early
++ * boot stages and so variables in memory -- for example, _instr_initialized --
++ * are correctly initialized. To ensure such a condition, a given variable,
++ * 'magic', has its value in memory checked against a constant (a magic number)
++ * that is kept in code (flash). Once the value matches the constant it means
++ * the RAM is correctly initialized and so instrumentation can be initialized
++ * properly and enabled for use.
++ */
++__no_instrumentation__
++bool instr_fundamentals_initialized(void)
++{
++	if (magic == 0xABBA) {
++		return true;
++	} else {
++		return false;
++	}
++}
++
++__no_instrumentation__
++int instr_enable(void)
++{
++	_instr_enabled = true;
++
++	return 0;
++}
++
++__no_instrumentation__
++int instr_disable(void)
++{
++	_instr_enabled = false;
++
++	return 0;
++}
++
++__no_instrumentation__
++bool instr_enabled(void)
++{
++	return _instr_enabled;
++}
++
++__no_instrumentation__
++int instr_turn_on(void)
++{
++	_instr_on = true;
++
++	return 0;
++}
++
++__no_instrumentation__
++int instr_turn_off(void)
++{
++	_instr_on = false;
++
++	return 0;
++}
++
++__no_instrumentation__
++bool instr_turned_on(void)
++{
++	if (!_instr_enabled) {
++		/* If instrumentation is disabled always return off state */
++		return false;
++	} else {
++		return _instr_on;
++	}
++}
++
++__no_instrumentation__
++bool instr_trace_enabled(void)
++{
++	return !_instr_tracing_disabled;
++}
++
++__no_instrumentation__
++bool instr_profile_enabled(void)
++{
++	return !_instr_profiling_disabled;
++}
++
++__no_instrumentation__
++void instr_set_trigger_func(void *callee)
++{
++	/* Update trigger_callee before updating retained mem */
++	trigger_callee = callee;
++
++	retention_write(retention0, 0, (const uint8_t *)&trigger_callee,
++			sizeof(trigger_callee));
++}
++
++__no_instrumentation__
++void instr_set_stop_func(void *callee)
++{
++	/* Update stopper_callee before updatting retained mem */
++	stopper_callee = callee;
++
++	retention_write(retention0, sizeof(trigger_callee), (const uint8_t *)&stopper_callee,
++			sizeof(stopper_callee));
++}
++
++__no_instrumentation__
++void *instr_get_trigger_func(void)
++{
++	return trigger_callee;
++}
++
++__no_instrumentation__
++void *instr_get_stop_func(void)
++{
++	return stopper_callee;
++}
++
++__no_instrumentation__
++void instr_dump_buffer_uart(void)
++{
++#if defined(CONFIG_INSTRUMENTATION_MODE_CALLGRAPH)
++	static const struct device *const uart_dev =
++	DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
++
++	/* Event record */
++	struct instr_record record;
++
++	/* Make sure instrumentation is disable. */
++	instr_disable();
++
++	/* Initiator mark */
++	printk("-*-#");
++
++	/* TODO(gromero): Use zero-copy to copy from buffer directly to the
++	 * UART FIFO instead of copying first from buffer to 'record'.
++	 */
++	while (instr_rb_get_item(&record) != NULL) {
++		for (int i = 0; i < instr_rb_get_item_size(record.header.type); i++) {
++			uart_poll_out(uart_dev, *((uint8_t *)&record + i));
++		}
++	}
++
++	/* Terminator mark */
++	printk("-*-!\n");
++#endif
++}
++
++__no_instrumentation__
++void instr_dump_deltas_uart(void)
++{
++#if defined(CONFIG_INSTRUMENTATION_MODE_STATISTICAL)
++	static const struct device *const uart_dev =
++	DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
++
++	instr_disable();
++
++	/* Initiator mark */
++	printk("-*-#");
++
++	for (int i = 0; i < num_disco_func; i++) {
++		uart_poll_out(uart_dev, INSTR_EVENT_PROFILE);
++		for (int j = 0; j < sizeof(disco_func[i].addr); j++) {
++			uart_poll_out(uart_dev, *((uint8_t *)&disco_func[i].addr + j));
++		}
++		for (int k = 0; k < sizeof(disco_func[i].delta_t); k++) {
++			uart_poll_out(uart_dev, *((uint8_t *)&disco_func[i].delta_t + k));
++		}
++	}
++
++	/* Terminator mark */
++	printk("-*-!\n");
++#endif
++}
++
++#if defined(CONFIG_INSTRUMENTATION_MODE_STATISTICAL)
++__no_instrumentation__
++void push_callee_timestamp(void *callee)
++{
++	bool found = false;
++	int curr_func;
++
++	/* Find callee in the discovered function array */
++	for (curr_func = 0; curr_func < num_disco_func; curr_func++) {
++		if (disco_func[curr_func].addr == callee) {
++			found = 1;
++			break;
++		}
++	}
++
++	if (!found) { /* New function discovered */
++		if (num_disco_func >= MAX_NUM_DISCO_FUNC)
++			/* No more space to add another function */
++			return;
++
++
++		disco_func[curr_func].delta_t = 0;
++		disco_func[curr_func].call_depth = 0;
++		disco_func[curr_func].addr = callee;
++
++		num_disco_func++;
++	}
++
++	/* New function or no other instance of function active (called): record timestamp */
++	if (disco_func[curr_func].call_depth == 0) {
++		disco_func[curr_func].entry_timestamp = instr_timestamp_ns();
++	}
++
++	/* Update call depth if not reached out maximum call depth */
++	if (disco_func[curr_func].call_depth < MAX_CALL_DEPTH) {
++		disco_func[curr_func].call_depth++;
++	}
++}
++
++__no_instrumentation__
++void pop_callee_timestamp(void *callee)
++{
++	uint64_t dt_ns;
++	uint64_t entry_timestamp;
++	uint64_t exit_timestamp;
++	int curr_func;
++
++	for (curr_func = 0; curr_func < num_disco_func; curr_func++) {
++		if (disco_func[curr_func].addr == callee) {
++			disco_func[curr_func].call_depth--;
++
++			/* Last active function is returning */
++			if (disco_func[curr_func].call_depth == 0) {
++				entry_timestamp = disco_func[curr_func].entry_timestamp;
++				exit_timestamp = instr_timestamp_ns(); /* Now */
++
++				/* Compute delta T */
++				dt_ns = exit_timestamp - entry_timestamp;
++
++				/* Accummulate delta T */
++				disco_func[curr_func].delta_t += dt_ns;
++
++			}
++
++			return;
++		}
++	}
++
++	/* Track number of unbalanced/spurious function exits */
++	unbalanced++;
++}
++#endif
++
++__no_instrumentation__
++void save_context(struct instr_record *record)
++{
++	k_tid_t curr_thread;
++
++	curr_thread = k_current_get();
++
++	record->context.cpu = arch_proc_id();
++	record->context.thread_id = curr_thread;
++	record->context.mode = curr_thread ? k_thread_priority_get(curr_thread) : 0;
++#ifdef CONFIG_THREAD_NAME
++	if (curr_thread) {
++		k_thread_name_copy(curr_thread, record->context.thread_name, 20);
++	} else { /* Not in a thread context */
++		strncpy(record->context.thread_name, "thread-none", 12);
++	}
++#endif
++}
++
++#if defined(CONFIG_INSTRUMENTATION_MODE_CALLGRAPH)
++__no_instrumentation__
++enum instr_event_types promote_event_type(enum instr_event_types type, void *callee,
++		unsigned int *lock_key)
++{
++	/*
++	 * Context switch events.
++	 */
++
++	/*
++	 * Only when z_thread_mark_switched_in/out are entered a trace event is
++	 * recorded, i.e. it doesn't matter when such a functions return. So
++	 * scheduler INSTR_EVENT_EXIT events are discarded by promoting them to
++	 * INSTR_EVENT_INVALID. Later, on the host side, a pair of in and out
++	 * INSTR_EVENT_ENTRY events will be used to compose a single ftrace
++	 * sched_switch event.
++	 */
++	if (callee == z_thread_mark_switched_in) {
++		if (type == INSTR_EVENT_EXIT) {
++			return INSTR_EVENT_INVALID;
++		}
++		*lock_key = irq_lock();
++		type = INSTR_EVENT_SCHED_IN;
++	}
++
++	if (callee == z_thread_mark_switched_out) {
++		if (type == INSTR_EVENT_EXIT) {
++			return INSTR_EVENT_INVALID;
++		}
++		*lock_key = irq_lock();
++		type = INSTR_EVENT_SCHED_OUT;
++	}
++
++	/*
++	 * Other ENTRY and EXIT events are not promoted.
++	 */
++
++	/*
++	 * Add other type promotions below.
++	 * ...
++	 */
++
++	return type;
++}
++#endif
++
++__no_instrumentation__
++void instr_event_handler(enum instr_event_types type, void *callee, void *caller)
++{
++#if defined(CONFIG_INSTRUMENTATION_MODE_CALLGRAPH)
++	/* For IRQ locking */
++	unsigned int key = 0;
++#endif
++
++	/*
++	 * Essentially, the instrumented code can only generate events when a
++	 * function is called or returns. Event type promotion happens based on
++	 * context, when entry and exit events are transformed to new ones based
++	 * on the context (see promote_event_type).
++	 */
++	assert(type == INSTR_EVENT_ENTRY || type == INSTR_EVENT_EXIT);
++
++	if (!instr_turned_on()) {
++		return;
++	}
++
++	/* Enter critical section */
++	instr_disable();
++
++#if defined(CONFIG_INSTRUMENTATION_MODE_STATISTICAL)
++	/* Profiling */
++	if (!_instr_profiling_disabled) {
++		if (type == INSTR_EVENT_ENTRY) {
++			/* Record current timestamp */
++			push_callee_timestamp(callee);
++		}
++
++		if (type == INSTR_EVENT_EXIT) {
++			/* Compute delta time for callee and accumulate it */
++			pop_callee_timestamp(callee);
++		}
++	}
++#endif
++
++#if defined(CONFIG_INSTRUMENTATION_MODE_CALLGRAPH)
++	/* For tracing, promote type based on the context */
++	type = promote_event_type(type, callee, &key);
++	if (type == INSTR_EVENT_INVALID) {
++		/* Don't trace invalid events */
++		instr_enable();
++		return;
++	}
++
++	/* Tracing */
++	if (!_instr_tracing_disabled) {
++		struct instr_record *record;    /* For zero-copy case */
++		struct instr_record tmp_record; /* For non-zero-copy case */
++
++		/*
++		 * Check if it's possible to zero-copy (which implies no
++		 * overwriting).
++		 */
++		record = instr_rb_put_item_claim(type);
++		if (record != NULL) {
++			record->header.type = type;
++			record->callee = callee;
++			record->caller = caller;
++			record->timestamp = instr_timestamp_ns();
++
++			save_context(record);
++
++			instr_rb_put_item_finish(type);
++
++		} else {
++			if (IS_ENABLED(CONFIG_INSTRUMENTATION_MODE_CALLGRAPH_BUFFER_OVERWRITE)) {
++				record = &tmp_record;
++
++				/*
++				 * No zero-copy way since buffer wraps.
++				 *
++				 * TODO(gromero): refactor below as a
++				 * single helper function?
++				 */
++				record->header.type = type;
++				record->callee = callee;
++				record->caller = caller;
++				record->timestamp = instr_timestamp_ns();
++
++				save_context(record);
++
++				/* No zero-copy. */
++				instr_rb_put_item_wrapping(record);
++
++			} else {/* No overwriting mode */
++				/* Buffer is full, so disable tracing. */
++				_instr_tracing_disabled = 1;
++				return;
++			}
++		}
++
++	}
++
++	if (type == INSTR_EVENT_SCHED_IN ||
++		type == INSTR_EVENT_SCHED_OUT) {
++		irq_unlock(key);
++	}
++#endif
++
++	instr_enable();
++}
+diff --git a/subsys/instrumentation/handlers/instr_handlers_gcc.c b/subsys/instrumentation/handlers/instr_handlers_gcc.c
+new file mode 100644
+index 00000000000..bc202d3eb60
+--- /dev/null
++++ b/subsys/instrumentation/handlers/instr_handlers_gcc.c
+@@ -0,0 +1,65 @@
++/*
++ * Copyright 2023 Linaro
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <zephyr/instrumentation/instrumentation.h>
++#include <zephyr/instrumentation/instrumentation_timestamp.h>
++
++__no_instrumentation__
++void __cyg_profile_func_enter(void *callee, void *caller)
++{
++	/*
++	 * On early boot it's not always possible to initialize the
++	 * instrumentation. Only when instr_fundamentals_initialized returns
++	 * true is when it's possible to initialize and enable the
++	 * instrumentation subsys.
++	 */
++	if (!instr_fundamentals_initialized()) {
++		return;
++	}
++
++	/* It's now possible to initialize and enable the instrumentation */
++	if (!instr_initialized()) {
++		instr_init();
++	}
++
++	/* Turn on instrumentation if trigger is called */
++	if (callee == instr_get_trigger_func() && !instr_turned_on()) {
++		instr_turn_on();
++	}
++
++	if (!instr_enabled()) {
++		return;
++	}
++
++	instr_event_handler(INSTR_EVENT_ENTRY, callee, caller);
++}
++
++__no_instrumentation__
++void __cyg_profile_func_exit(void *callee, void *caller)
++{
++	if (!instr_fundamentals_initialized()) {
++		return;
++	}
++
++	if (!instr_enabled()) {
++		return;
++	}
++
++	instr_event_handler(INSTR_EVENT_EXIT, callee, caller);
++
++	/* Turn off instrumentation if stopper returns */
++	if (callee == instr_get_stop_func() && instr_turned_on()) {
++		instr_turn_off();
++	}
++
++	/*
++	 * Always finish instrumentation once 'main' returns.
++	 */
++	if (callee == main) {
++		instr_disable();
++		return;
++	}
++}
+diff --git a/subsys/instrumentation/ringbuffer/ringbuffer.c b/subsys/instrumentation/ringbuffer/ringbuffer.c
+new file mode 100644
+index 00000000000..120574fafc3
+--- /dev/null
++++ b/subsys/instrumentation/ringbuffer/ringbuffer.c
+@@ -0,0 +1,295 @@
++/*
++ * Copyright 2023 Linaro
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <zephyr/instrumentation/instrumentation_ringbuffer.h>
++
++#define RING_BUFFER_SIZE CONFIG_INSTRUMENTATION_MODE_CALLGRAPH_TRACE_BUFFER_SIZE
++static uint8_t ring_buffer[RING_BUFFER_SIZE];
++
++static int head;
++static int tail;
++static int wrapped;
++
++static size_t type_size_table[INSTR_EVENT_NUM];
++
++__no_instrumentation__
++size_t instr_rb_get_item_size(enum instr_event_types type)
++{
++	return type_size_table[type];
++}
++
++__no_instrumentation__
++int instr_rb_increment_pos(int pos, int offset)
++{
++	pos += offset;
++	pos %= RING_BUFFER_SIZE;
++
++	return pos;
++}
++
++__no_instrumentation__
++struct instr_record *instr_rb_put_item_claim(enum instr_event_types item_type)
++{
++	int item_size;
++	int new_head;
++	int tail_record_size;
++	struct instr_record *tail_record;
++
++	item_size = instr_rb_get_item_size(item_type);
++	new_head = head + item_size;
++	/* If there is space to put item, adjust tail accordingly. */
++	if ((head + item_size) <= RING_BUFFER_SIZE) {
++		if (head == tail && wrapped) {
++			tail_record = (struct instr_record *)&ring_buffer[tail];
++			tail_record_size = instr_rb_get_item_size(tail_record->header.type);
++			tail = instr_rb_increment_pos(tail, tail_record_size);
++		}
++
++		while (head < tail && new_head > tail) {
++			tail_record = (struct instr_record *)&ring_buffer[tail];
++			tail_record_size = instr_rb_get_item_size(tail_record->header.type);
++			tail = instr_rb_increment_pos(tail, tail_record_size);
++		}
++
++		return (struct instr_record *)&ring_buffer[head];
++	}
++
++	/* No space to put item, buffer will wrap. */
++	return NULL;
++}
++
++__no_instrumentation__
++int instr_rb_put_item_wrapping(struct instr_record *rec)
++{
++	int new_head;
++	int next_tail;
++	struct instr_record *tail_record;
++	size_t first_chunk;
++	size_t second_chunk;
++
++	assert(rec != NULL);
++
++	/* Adjust head first */
++	new_head = instr_rb_increment_pos(head, instr_rb_get_item_size(rec->header.type));
++
++	/*
++	 * Handle case when tail points to an item which is wrapped itself,
++	 * like, for instance, when buffer size = 41, head = 39, tail = 40, and
++	 * a new item of size 20 will be inserted.
++	 */
++	tail_record = (struct instr_record *)&ring_buffer[tail];
++	next_tail = instr_rb_increment_pos(tail, instr_rb_get_item_size(tail_record->header.type));
++	if (next_tail < tail) {
++		tail = next_tail;
++	}
++
++	/*
++	 * Advance tail until there is space to put the new item, but not beyond
++	 * the head.
++	 */
++	while (new_head > tail && tail != head) {
++		tail_record = (struct instr_record *)&ring_buffer[tail];
++		tail = instr_rb_increment_pos(tail,
++						instr_rb_get_item_size(tail_record->header.type));
++	}
++
++	/* First, write the number of bytes available before buffer wraps. */
++	first_chunk = RING_BUFFER_SIZE - head;
++	memcpy(&ring_buffer[head], (uint8_t *)rec, first_chunk);
++
++	/* Wrap buffer. */
++	head = 0;
++
++	/* Second, write remaining item bytes not written yet. */
++	second_chunk = instr_rb_get_item_size(rec->header.type) - first_chunk;
++	memcpy(&ring_buffer[head], (uint8_t *)rec + first_chunk, second_chunk);
++
++	/* Adjust final head position. */
++	head += second_chunk;
++
++	wrapped = 1;
++
++	return 0;
++}
++
++/* TODO(gromero): can be optimized to find out 'item_type' automatically? */
++__no_instrumentation__
++void instr_rb_put_item_finish(enum instr_event_types item_type)
++{
++	int item_size;
++
++	item_size = instr_rb_get_item_size(item_type);
++
++	head += item_size;
++	head %= RING_BUFFER_SIZE;
++
++	if (head == tail) {
++		wrapped = 1;
++	}
++}
++
++__no_instrumentation__
++struct instr_record *instr_rb_get_item_claim(void)
++{
++	struct instr_record *tail_record;
++	size_t item_size;
++
++	if (!wrapped && tail == head) {
++		/* Buffer is empty. */
++		return NULL;
++	}
++
++	/* If type size is more than 1 byte it means that its value can wrap
++	 * around the buffer boundaries, hence a corner case will exist, i.e.
++	 * it will be necessary to "unwrap" type before we can reference to it.
++	 * Since having more than 256 types is quite unlike, asserting type size
++	 * is exactly 1 byte is enough for now. N.B.: that type member is always
++	 * the first in the header struct.
++	 */
++	assert(sizeof(tail_record->header.type) == 1);
++
++	tail_record = (struct instr_record *)&ring_buffer[tail];
++	item_size = instr_rb_get_item_size(tail_record->header.type);
++
++	if (tail + item_size <= RING_BUFFER_SIZE) {
++		return tail_record;
++	}
++
++	/* Buffer wraps, so can't access the item directly. */
++	return NULL;
++}
++
++__no_instrumentation__
++int instr_rb_get_item_wrapping(struct instr_record *record)
++{
++	size_t item_size;
++	size_t first_chunk;
++	size_t second_chunk;
++	struct instr_record *tail_record;
++
++	/* See comment above in get_item_claim(). */
++	assert(sizeof(record->header.type) == 1);
++
++	if (!wrapped && tail == head) {
++		/* Buffer is empty. */
++		return -1;
++	}
++
++	/* Find the record type to find out the total item size. */
++	tail_record = (struct instr_record *)&ring_buffer[tail];
++	item_size = instr_rb_get_item_size(tail_record->header.type);
++
++	first_chunk = RING_BUFFER_SIZE - tail;
++	memcpy((uint8_t *)record, &ring_buffer[tail], first_chunk);
++
++	second_chunk = item_size - first_chunk;
++	memcpy((uint8_t *)(record + first_chunk), &ring_buffer[0], second_chunk);
++
++	/* Pop item from tail. */
++	tail += item_size;
++	tail %= RING_BUFFER_SIZE;
++
++	wrapped = 0;
++
++	/* TODO(gromero): revisit API, maybe this can return no value. */
++	return 0;
++}
++
++__no_instrumentation__
++void instr_rb_get_item_finish(struct instr_record *record)
++{
++	int item_size;
++
++	assert(record != NULL);
++
++	/*
++	 * TODO(gromero): add check for claim being called before this func ?
++	 * i.e. it's forbidden to call this function before calling
++	 * get_item_claim().
++	 */
++
++	/*
++	 * TODO(gromero): can item size be deduced from item at 'head', so arg
++	 * 'record' can be eliminated?
++	 */
++
++	item_size = instr_rb_get_item_size(record->header.type);
++	tail += item_size;
++	tail %= RING_BUFFER_SIZE;
++
++	if (tail == head) {
++		wrapped = 0;
++	}
++}
++
++__no_instrumentation__
++void instr_rb_init_type_size_table(void)
++{
++	size_t header_size;
++	size_t record_size;
++
++	header_size = sizeof(struct instr_header);
++	header_size += sizeof(void *);
++	header_size += sizeof(void *);
++	header_size += sizeof(uint64_t);
++
++	/* Entry/Exit record with context record */
++	record_size = header_size + sizeof(struct instr_event_context);
++	type_size_table[INSTR_EVENT_ENTRY] = record_size;
++	type_size_table[INSTR_EVENT_EXIT] = record_size;
++
++	/* Schedule in/out record. Same size as entry/exit recs. w/ context */
++	record_size = header_size + sizeof(struct instr_event_context);
++	type_size_table[INSTR_EVENT_SCHED_IN] = record_size;
++	type_size_table[INSTR_EVENT_SCHED_OUT] = record_size;
++
++	/* ... */
++	/* Add more record sizes here */
++
++	/*
++	 * The minimum buffer size allows recording at least 1 record of the
++	 * largest declared record. Assert this condition.
++	 */
++	for (size_t i = 0; i < INSTR_EVENT_NUM; i++) {
++		assert(type_size_table[i] <= RING_BUFFER_SIZE);
++	}
++}
++
++__no_instrumentation__
++void instr_rb_init(void)
++{
++	head = 0;
++	tail = 0;
++	wrapped = 0;
++	instr_rb_init_type_size_table();
++}
++
++__no_instrumentation__
++struct instr_record *instr_rb_get_item(struct instr_record *record)
++{
++	assert(record != NULL);
++
++	struct instr_record *rec_ptr;
++	int ret;
++
++	/* Try to get item directly. */
++	rec_ptr = instr_rb_get_item_claim();
++	if (rec_ptr != NULL) {
++		memcpy(record, rec_ptr, instr_rb_get_item_size(rec_ptr->header.type));
++		instr_rb_get_item_finish(rec_ptr);
++
++		return record;
++	}
++
++	/* Try to get item wrapping. */
++	ret = instr_rb_get_item_wrapping(record);
++	if (ret != -1) {
++		return record;
++	}
++
++	/* If first and second attempts failed, then buffer is empty. */
++	return NULL;
++}
+diff --git a/subsys/instrumentation/timestamp/timestamp.c b/subsys/instrumentation/timestamp/timestamp.c
+new file mode 100644
+index 00000000000..fad6026b17c
+--- /dev/null
++++ b/subsys/instrumentation/timestamp/timestamp.c
+@@ -0,0 +1,30 @@
++/*
++ * Copyright 2023 Linaro
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <zephyr/instrumentation/instrumentation.h>
++#include <zephyr/instrumentation/instrumentation_timestamp.h>
++
++__no_instrumentation__
++int instr_timestamp_init(void)
++{
++	timing_init();
++	timing_start();
++
++	return 0;
++}
++
++__no_instrumentation__
++uint64_t instr_timestamp_ns(void)
++{
++	timing_t bigbang = 0;
++	timing_t now;
++	uint64_t now_cycles;
++
++	now = timing_counter_get();
++	now_cycles = timing_cycles_get(&bigbang, &now);
++
++	return timing_cycles_to_ns(now_cycles);
++}
+diff --git a/subsys/instrumentation/transport/uart.c b/subsys/instrumentation/transport/uart.c
+new file mode 100644
+index 00000000000..08ddef57e6b
+--- /dev/null
++++ b/subsys/instrumentation/transport/uart.c
+@@ -0,0 +1,136 @@
++/*
++ * Copyright 2023 Linaro
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <errno.h>
++#include <ctype.h>
++#include <string.h>
++#include <stdlib.h>
++#include <zephyr/sys/__assert.h>
++#include <zephyr/sys/reboot.h>
++#include <zephyr/kernel.h>
++#include <zephyr/drivers/uart.h>
++#include <zephyr/instrumentation/instrumentation.h>
++
++#define COMMAND_BUFFER_SIZE 32
++char _cmd_buffer[COMMAND_BUFFER_SIZE];
++
++__no_instrumentation__
++void handle_cmd(char *cmd)
++{
++	char *beginptr;
++	char *endptr;
++	long address;
++
++	if (strcmp("reboot", cmd) == 0) {
++		sys_reboot(SYS_REBOOT_COLD);
++	} else if (strcmp("status", cmd) == 0) {
++		printk("%d %d\n", instr_tracing_supported(), instr_profiling_supported());
++	} else if (strcmp("ping", cmd) == 0) {
++		printk("pong\n");
++	} else if (strcmp("dump_trace", cmd) == 0) {
++		instr_dump_buffer_uart();
++	} else if (strcmp("dump_profile", cmd) == 0) {
++		instr_dump_deltas_uart();
++	} else if (strncmp(cmd, "trigger", strlen("trigger")) == 0) {
++		beginptr = cmd + strlen("trigger");
++		address = strtol(beginptr, &endptr, 16);
++		if (endptr != beginptr) {
++			instr_set_trigger_func((void *)address);
++		} else {
++			printk("invalid argument for 'trigger' in: '%s'\n", cmd);
++		}
++	} else if (strncmp(cmd, "stopper", strlen("stopper")) == 0) {
++		beginptr = cmd + strlen("stopper");
++		address = strtol(beginptr, &endptr, 16);
++		if (endptr != beginptr) {
++			instr_set_stop_func((void *)address);
++		} else {
++			printk("invalid argument for 'stopper' in: '%s'\n", cmd);
++		}
++	} else if (strcmp("listsets", cmd) == 0) {
++		void *address;
++
++		address = instr_get_trigger_func();
++		if (address) {
++			printk("trigger: %p\n", address);
++		} else {
++			printk("trigger not set.\n");
++		}
++
++		address = instr_get_stop_func();
++		if (address) {
++			printk("stopper: %p\n", address);
++		} else {
++			printk("stopper not set.\n");
++		}
++	} else {
++		printk("invalid command %s\n", cmd);
++	}
++}
++
++__no_instrumentation__
++static void uart_isr(const struct device *dev, void *user_data)
++{
++	int ret;
++	uint8_t byte = 0;
++	static uint8_t cur;
++
++	ARG_UNUSED(user_data);
++
++	while (uart_irq_update(dev) && uart_irq_is_pending(dev)) {
++		if (!uart_irq_rx_ready(dev)) {
++			continue;
++		}
++
++		ret = uart_fifo_read(dev, &byte, 1);
++		if (ret < 0) {
++			uart_irq_rx_disable(dev);
++			return;
++		}
++
++		if (!isprint(byte)) {
++			if (byte == '\r') {
++				_cmd_buffer[cur] = '\0';
++				handle_cmd(_cmd_buffer);
++				cur = 0U;
++			}
++
++			continue;
++		}
++
++		if (cur < (COMMAND_BUFFER_SIZE - 1)) {
++			_cmd_buffer[cur++] = byte;
++		}
++	}
++}
++
++__no_instrumentation__
++static int uart_isr_init(void)
++{
++	static const struct device *const uart_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
++
++	__ASSERT(device_is_ready(uart_dev), "uart_dev is not ready");
++
++	uart_irq_rx_disable(uart_dev);
++	uart_irq_tx_disable(uart_dev);
++
++	/* Set RX irq. handler */
++	uart_irq_callback_user_data_set(uart_dev, uart_isr, NULL);
++
++	/* Clean RX FIFO before enabling interrupt. */
++	while (uart_irq_rx_ready(uart_dev)) {
++		uint8_t c;
++
++		uart_fifo_read(uart_dev, &c, 1);
++	}
++
++	/* Enable RX interruption. */
++	uart_irq_rx_enable(uart_dev);
++
++	return 0;
++}
++
++SYS_INIT(uart_isr_init, APPLICATION, 0);
+-- 
+2.49.0
+

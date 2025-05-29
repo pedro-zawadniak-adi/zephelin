@@ -1,0 +1,38 @@
+From 52e9383f423ecca3d3485128d8e9adfa56d2e334 Mon Sep 17 00:00:00 2001
+From: Kevin Townsend <kevin.townsend@linaro.org>
+Date: Wed, 26 Apr 2023 16:33:57 +0000
+Subject: [PATCH 03/12] toolchain: gcc: Add __no_instrumentation__ definition
+
+Adds a new '__no_instrumentation__' preprocessor definition for GCC,
+mapping it to '__attribute__((__no_instrument_function__))'.
+
+This new macro is used to disable code instrumentation (enabled when
+'-finstrument-functions' flag is passed to the compiler) for specific
+functions when placed before a function definition.
+
+Signed-off-by: Kevin Townsend <kevin.townsend@linaro.org>
+Signed-off-by: Gustavo Romero <gustavo.romero@linaro.org>
+---
+ include/zephyr/toolchain/gcc.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/include/zephyr/toolchain/gcc.h b/include/zephyr/toolchain/gcc.h
+index 3d63cda20c0..38c929cdcab 100644
+--- a/include/zephyr/toolchain/gcc.h
++++ b/include/zephyr/toolchain/gcc.h
+@@ -679,6 +679,12 @@ do {                                                                    \
+ #define FUNC_NO_STACK_PROTECTOR
+ #endif
+ 
++#if defined(CONFIG_INSTRUMENTATION)
++#define __no_instrumentation__ __attribute__((__no_instrument_function__))
++#else
++#define __no_instrumentation__ /**/
++#endif
++
+ #endif /* !_LINKER */
+ 
+ #define TOOLCHAIN_WARNING_ADDRESS_OF_PACKED_MEMBER "-Waddress-of-packed-member"
+-- 
+2.49.0
+
