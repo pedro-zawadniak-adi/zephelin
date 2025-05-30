@@ -29,6 +29,7 @@ Run Twister:
   script:
     - west init -l .
     - west update
+    - west patch apply
     - west zephyr-export
     - west twister -v -p ${CI_PARALLEL_NAME} -T samples -T tests
 
@@ -38,6 +39,7 @@ Run Lint:
   script:
     - west init -l .
     - west update
+    - west patch apply
     - west zephyr-export
 
     - excludes="-e SysbuildKconfig -e GitLint -e Identity -e ClangFormat"

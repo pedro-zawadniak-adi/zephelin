@@ -2,4 +2,5 @@ cmake_minimum_required(VERSION 3.20)
 
 zephyr_library_named(zpl)
 zephyr_library_sources(lib.c)
+zephyr_library_sources_ifdef(CONFIG_ZPL_TRACE_BACKEND_TRIVIAL_UART trivial_uart_backend.c)
 zephyr_library_sources_ifdef(CONFIG_ZPL_MEMORY_PROFILING memory_profiler.c)

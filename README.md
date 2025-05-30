@@ -17,6 +17,7 @@ Then, initialize the workspace using `west`:
 ```shell
 west init -l .
 west update
+west patch apply
 west zephyr-export
 west packages pip --install
 west sdk install

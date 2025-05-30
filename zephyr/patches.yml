@@ -1,0 +1,7 @@
+patches:
+  - path: zephyr/0001-subsys-tracing-select-backend-name-in-Kconfig.patch
+    sha256sum: 3a8448a715d89630b86ef10eaba0bd257e21fa32232bf5c4b4b4f3b5e1857bf7
+    module: zephyr
+    author: Filip Kokosinski
+    email: fkokosinski@antmicro.com
+    date: 2025-05-30
