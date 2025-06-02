@@ -1,0 +1,26 @@
+sample:
+  name: simple
+common:
+  tags: profiling
+  harness: console
+  harness_config:
+    type: one_line
+    regex:
+      - "zpl_tflm_begin_event"
+tests:
+  sample.trace.tflm_events.plaintext:
+    tags: profiling
+  sample.trace.tflm_events.plaintext.robot:
+    tags: profiling
+    harness: robot
+    harness_config:
+      robot_testsuite: tflm_events_plaintext.robot
+  sample.trace.tflm_events.ctf.robot:
+    tags: profiling
+    extra_configs:
+      - CONFIG_ZPL_TRACE_FORMAT_PLAINTEXT=n
+      - CONFIG_TRACING_TEST=n
+      - CONFIG_TRACING_CTF=y
+    harness: robot
+    harness_config:
+      robot_testsuite: tflm_events_ctf.robot
