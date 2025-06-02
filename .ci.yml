@@ -32,6 +32,10 @@ Run Twister:
     - west patch apply
     - west zephyr-export
     - west twister -v -p ${CI_PARALLEL_NAME} -T samples -T tests
+  artifacts:
+    paths:
+      - twister-out
+    when: always
 
 Run Lint:
   stage: Test
