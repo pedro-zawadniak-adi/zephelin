@@ -37,6 +37,11 @@ endchoice
 config TRACING_BACKEND_NAME
 	default "tracing_backend_trivial_uart" if ZPL_TRACE_BACKEND_TRIVIAL_UART
 
+config ZPL_TRACE_CTF_MAX_STR_LEN
+	int "Maximum string length for CTF events"
+	default 20
+	depends on ZPL_TRACE_FORMAT_CTF
+
 config ZPL_MEMORY_PROFILING
 	bool "Memory profiling"
 	depends on ZPL
@@ -67,3 +72,7 @@ config ZPL_MEMORY_PROFILING_THREAD_DELAY
 	int "Memory profiling thread delay"
 	default 0
 	depends on ZPL_MEMORY_PROFILING
+
+config ZPL_TFLM_EVENTS
+	bool "Enables TFLite Micro events"
+	depends on ZPL

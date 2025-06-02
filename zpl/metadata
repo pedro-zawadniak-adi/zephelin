@@ -1,0 +1,15 @@
+event {
+	name = zpl_tflm_begin_event;
+	id = 0xA1;
+	fields := struct {
+		ctf_bounded_string_t tag[20];
+	};
+};
+
+event {
+	name = zpl_tflm_end_event;
+	id = 0xA2;
+	fields := struct {
+		ctf_bounded_string_t tag[20];
+	};
+};
