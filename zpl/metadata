@@ -1,6 +1,6 @@
 event {
 	name = zpl_tflm_begin_event;
-	id = 0xA1;
+	id = 0xA0;
 	fields := struct {
 		ctf_bounded_string_t tag[20];
 	};
@@ -8,7 +8,7 @@ event {
 
 event {
 	name = zpl_tflm_end_event;
-	id = 0xA2;
+	id = 0xA1;
 	fields := struct {
 		ctf_bounded_string_t tag[20];
 	};
