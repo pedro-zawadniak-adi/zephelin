@@ -9,8 +9,8 @@ int main(void)
 
 	zpl_init();
 
-	zpl_emit_tflm_begin_event(k_cycle_get_32(), tflm_op_tag);
-	zpl_emit_tflm_end_event(k_cycle_get_32(), tflm_op_tag);
+	zpl_emit_tflm_begin_event(k_cycle_get_32(), tflm_op_tag, 0, 1);
+	zpl_emit_tflm_end_event(k_cycle_get_32(), tflm_op_tag, 2, 3);
 
 	return 0;
 }

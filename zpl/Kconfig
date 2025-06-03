@@ -35,6 +35,7 @@ config ZPL_TRACE_BACKEND_TRIVIAL_UART
 endchoice
 
 config TRACING_BACKEND_NAME
+	string
 	default "tracing_backend_trivial_uart" if ZPL_TRACE_BACKEND_TRIVIAL_UART
 
 config ZPL_TRACE_CTF_MAX_STR_LEN
@@ -76,3 +77,15 @@ config ZPL_MEMORY_PROFILING_THREAD_DELAY
 config ZPL_TFLM_EVENTS
 	bool "Enables TFLite Micro events"
 	depends on ZPL
+
+config ZPL_TFLM_PROFILER
+	bool "Build with TFLM profiler support"
+	depends on ZPL_TFLM_EVENTS
+	depends on TENSORFLOW_LITE_MICRO
+	depends on CPP
+	depends on STD_CPP17
+
+config ZPL_TFLM_PROFILER_MAX_EVENTS
+	int "Maximum number of stored events"
+	default 32
+	depends on ZPL_TFLM_PROFILER

@@ -2,7 +2,11 @@ event {
 	name = zpl_tflm_begin_event;
 	id = 0xA0;
 	fields := struct {
+		uint16_t subgraph_idx;
+		uint16_t op_idx;
 		ctf_bounded_string_t tag[20];
+		uint32_t arena_used_bytes;
+		uint32_t arena_tail_usage;
 	};
 };
 
@@ -10,7 +14,11 @@ event {
 	name = zpl_tflm_end_event;
 	id = 0xA1;
 	fields := struct {
+		uint16_t subgraph_idx;
+		uint16_t op_idx;
 		ctf_bounded_string_t tag[20];
+		uint32_t arena_used_bytes;
+		uint32_t arena_tail_usage;
 	};
 };
 

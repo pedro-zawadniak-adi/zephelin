@@ -12,18 +12,30 @@
 typedef struct __packed {
 	uint32_t timestamp;
 	uint8_t id;
+	uint16_t subgraph_idx;
+	uint16_t op_idx;
 	uint8_t tag[CONFIG_ZPL_TRACE_CTF_MAX_STR_LEN];
+	uint32_t arena_used_bytes;
+	uint32_t arena_tail_usage;
 } zpl_tflm_begin_event_t;
 
 typedef struct __packed {
 	uint32_t timestamp;
 	uint8_t id;
+	uint16_t subgraph_idx;
+	uint16_t op_idx;
 	uint8_t tag[CONFIG_ZPL_TRACE_CTF_MAX_STR_LEN];
+	uint32_t arena_used_bytes;
+	uint32_t arena_tail_usage;
 } zpl_tflm_end_event_t;
 #endif /* defined(CONFIG_ZPL_TRACE_FORMAT_CTF) */
 
-void zpl_emit_tflm_begin_event(uint32_t cycles, const char *tag);
+void zpl_emit_tflm_begin_event(
+	uint32_t cycles, uint16_t subgraph_idx, uint16_t op_idx, const char *tag,
+	uint32_t arena_used_bytes, uint32_t arena_tail_usage);
 
-void zpl_emit_tflm_end_event(uint32_t cycles, const char *tag);
+void zpl_emit_tflm_end_event(
+	uint32_t cycles, uint16_t subgraph_idx, uint16_t op_idx, const char *tag,
+	uint32_t arena_used_bytes, uint32_t arena_tail_usage);
 
 #endif /* ZPL_TFLM_EVENTS_H_ */
