@@ -12,3 +12,8 @@ twister-out*
 *.xml
 logs/
 snapshots/
+
+# Python
+venv/*
+.venv/*
+*/__pycache__/*
