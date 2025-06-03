@@ -26,6 +26,7 @@ Run Twister:
     - qemu_cortex_m3
     - max78002evkit_custom/max78002/m4
     - max32690fthr_custom/max32690/m4
+    - stm32f429i_disc1_custom/stm32f429xx
   script:
     - west init -l .
     - west update

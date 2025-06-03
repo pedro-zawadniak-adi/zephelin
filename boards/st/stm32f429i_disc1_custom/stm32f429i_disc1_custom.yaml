@@ -1,0 +1,22 @@
+identifier: stm32f429i_disc1_custom
+name: ST STM32F429I Discovery
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 192
+flash: 2048
+supported:
+  - counter
+  - i2c
+  - spi
+  - display
+vendor: st
+simulation:
+  - name: renode
+    exec: renode
+testing:
+  renode:
+    uart: sysbus.usart1
+    resc: boards/st/stm32f429i_disc1_custom/support/stm32f4_discovery.resc
