@@ -10,16 +10,28 @@ tests:
       type: one_line
       regex:
         - "Counter: 5"
-        - "stack: free: 752B, used: 272B"
-        - "heap free: 164B, used: 28B"
+        - "zpl_memory_event stack 496B 528B"
+        - "zpl_memory_event heap 28B 164B"
         - "Counter: 4"
-        - "stack: free: 736B, used: 288B"
-        - "heap free: 132B, used: 56B"
+        - "zpl_memory_event stack 512B 512B"
+        - "zpl_memory_event heap 56B 132B"
         - "Counter: 1"
-        - "stack: free: 688B, used: 336B"
-        - "heap free: 36B, used: 140B"
-  sample.trace.memory_profiling.robot:
+        - "zpl_memory_event stack 560B 464B"
+        - "zpl_memory_event heap 140B 36B"
+    extra_configs:
+      - CONFIG_TRACING_BUFFER_SIZE=4096
+  sample.trace.memory_profiling.plaintext.robot:
     tags: profiling
     harness: robot
     harness_config:
       robot_testsuite: memory_profiling.robot
+    extra_configs:
+      - CONFIG_TRACING_BUFFER_SIZE=4096
+  sample.trace.memory_profiling.ctf.robot:
+    tags: profiling
+    harness: robot
+    harness_config:
+      robot_testsuite: memory_profiling_ctf.robot
+    extra_configs:
+      - CONFIG_TRACING_BUFFER_SIZE=4096
+      - CONFIG_ZPL_TRACE_FORMAT_CTF=y
