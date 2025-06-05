@@ -6,7 +6,7 @@ stages:
   variables:
     DEBIAN_FRONTEND: noninteractive
     CMAKE_PREFIX_PATH: /opt/toolchains
-    RENODE_VERSION: "renode_1.15.3+20250320gitdbdcd8ae8_amd64.deb"
+    RENODE_VERSION: "renode_1.15.3+20250605gite60efac72_amd64.deb"
   image: "zephyrprojectrtos/ci:v0.27.5"
   before_script:
     - wget "https://dl.antmicro.com/projects/renode/builds/${RENODE_VERSION}" -O renode.deb
