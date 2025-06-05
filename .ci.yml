@@ -10,7 +10,9 @@ stages:
   image: "zephyrprojectrtos/ci:v0.27.5"
   before_script:
     - wget "https://dl.antmicro.com/projects/renode/builds/${RENODE_VERSION}" -O renode.deb
-    - sudo dpkg -i renode.deb
+    - dpkg -i renode.deb
+    - apt update -qq
+    - apt install -yqq python3-bt2
 
 Run Tuttest:
   extends: .test_template
