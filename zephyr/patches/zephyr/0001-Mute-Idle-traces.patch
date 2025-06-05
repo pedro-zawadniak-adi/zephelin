@@ -1,0 +1,352 @@
+From edfc7103bcb765c69acce62c89b12011d1bed5a5 Mon Sep 17 00:00:00 2001
+From: Krzysztof Sychla <ksychla@antmicro.com>
+Date: Thu, 12 Jun 2025 11:46:16 +0200
+Subject: [PATCH] Mute Idle traces
+
+---
+ arch/arm/core/cortex_m/cpu_idle.c       | 8 ++++----
+ arch/mips/core/cpu_idle.c               | 2 +-
+ arch/posix/core/cpuhalt.c               | 4 ++--
+ arch/riscv/core/cpu_idle.c              | 8 ++++----
+ arch/x86/core/cpuhalt.c                 | 4 ++--
+ arch/xtensa/core/cpu_idle.c             | 4 ++--
+ include/zephyr/tracing/tracing_macros.h | 4 ++++
+ soc/gaisler/leon3/idle.c                | 2 +-
+ soc/intel/intel_adsp/ace/power.c        | 2 +-
+ soc/intel/intel_adsp/cavs/power.c       | 2 +-
+ soc/ite/ec/it51xxx/soc.c                | 2 +-
+ soc/ite/ec/it8xxx2/soc.c                | 2 +-
+ soc/nordic/common/vpr/soc_idle.c        | 4 ++--
+ soc/nordic/nrf54h/power.c               | 8 ++++----
+ soc/silabs/common/soc_power_pmgr.c      | 2 +-
+ subsys/tracing/Kconfig                  | 6 ++++++
+ subsys/tracing/test/tracing_test.h      | 5 +++++
+ 17 files changed, 42 insertions(+), 27 deletions(-)
+
+diff --git a/arch/arm/core/cortex_m/cpu_idle.c b/arch/arm/core/cortex_m/cpu_idle.c
+index 47eff95090a..ea65425f284 100644
+--- a/arch/arm/core/cortex_m/cpu_idle.c
++++ b/arch/arm/core/cortex_m/cpu_idle.c
+@@ -61,7 +61,7 @@ void z_arm_cpu_idle_init(void)
+ void arch_cpu_idle(void)
+ {
+ #if defined(CONFIG_TRACING)
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ #endif
+
+ #if CONFIG_ARM_ON_ENTER_CPU_IDLE_PREPARE_HOOK
+@@ -99,7 +99,7 @@ void arch_cpu_idle(void)
+ 	SLEEP_IF_ALLOWED(__WFI);
+
+ #if defined(CONFIG_TRACING)
+-	sys_trace_idle_exit();
++	SYS_PORT_TRACING_FUNC(idle, exit);
+ #endif
+ 	__enable_irq();
+ 	__ISB();
+@@ -110,7 +110,7 @@ void arch_cpu_idle(void)
+ void arch_cpu_atomic_idle(unsigned int key)
+ {
+ #if defined(CONFIG_TRACING)
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ #endif
+
+ #if CONFIG_ARM_ON_ENTER_CPU_IDLE_PREPARE_HOOK
+@@ -141,7 +141,7 @@ void arch_cpu_atomic_idle(unsigned int key)
+ 	SLEEP_IF_ALLOWED(__WFE);
+
+ #if defined(CONFIG_TRACING)
+-	sys_trace_idle_exit();
++	SYS_PORT_TRACING_FUNC(idle, exit);
+ #endif
+
+ 	arch_irq_unlock(key);
+diff --git a/arch/mips/core/cpu_idle.c b/arch/mips/core/cpu_idle.c
+index fd6621284a5..acc4863787c 100644
+--- a/arch/mips/core/cpu_idle.c
++++ b/arch/mips/core/cpu_idle.c
+@@ -10,7 +10,7 @@
+
+ static ALWAYS_INLINE void mips_idle(unsigned int key)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+
+ 	/* unlock interrupts */
+ 	irq_unlock(key);
+diff --git a/arch/posix/core/cpuhalt.c b/arch/posix/core/cpuhalt.c
+index 8c486cd69b4..f0ba08e384c 100644
+--- a/arch/posix/core/cpuhalt.c
++++ b/arch/posix/core/cpuhalt.c
+@@ -35,14 +35,14 @@ CONFIG_ARCH_HAS_CUSTOM_BUSY_WAIT must be selected"
+
+ void arch_cpu_idle(void)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	posix_irq_full_unlock();
+ 	posix_halt_cpu();
+ }
+
+ void arch_cpu_atomic_idle(unsigned int key)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	posix_atomic_halt_cpu(key);
+ }
+
+diff --git a/arch/riscv/core/cpu_idle.c b/arch/riscv/core/cpu_idle.c
+index 6991da40905..5e1cfe9ae2e 100644
+--- a/arch/riscv/core/cpu_idle.c
++++ b/arch/riscv/core/cpu_idle.c
+@@ -10,9 +10,9 @@
+ #ifndef CONFIG_ARCH_HAS_CUSTOM_CPU_IDLE
+ void arch_cpu_idle(void)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	__asm__ volatile("wfi");
+-	sys_trace_idle_exit();
++	SYS_PORT_TRACING_FUNC(idle, exit);
+ 	irq_unlock(MSTATUS_IEN);
+ }
+ #endif
+@@ -20,9 +20,9 @@ void arch_cpu_idle(void)
+ #ifndef CONFIG_ARCH_HAS_CUSTOM_CPU_ATOMIC_IDLE
+ void arch_cpu_atomic_idle(unsigned int key)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	__asm__ volatile("wfi");
+-	sys_trace_idle_exit();
++	SYS_PORT_TRACING_FUNC(idle, exit);
+ 	irq_unlock(key);
+ }
+ #endif
+diff --git a/arch/x86/core/cpuhalt.c b/arch/x86/core/cpuhalt.c
+index b3f53a243e0..5633c8978d7 100644
+--- a/arch/x86/core/cpuhalt.c
++++ b/arch/x86/core/cpuhalt.c
+@@ -11,7 +11,7 @@
+ __pinned_func
+ void arch_cpu_idle(void)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	__asm__ volatile (
+ 	    "sti\n\t"
+ 	    "hlt\n\t");
+@@ -22,7 +22,7 @@ void arch_cpu_idle(void)
+ __pinned_func
+ void arch_cpu_atomic_idle(unsigned int key)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+
+ 	__asm__ volatile (
+ 	    "sti\n\t"
+diff --git a/arch/xtensa/core/cpu_idle.c b/arch/xtensa/core/cpu_idle.c
+index 48ddc58cb0a..8d3140895e2 100644
+--- a/arch/xtensa/core/cpu_idle.c
++++ b/arch/xtensa/core/cpu_idle.c
+@@ -9,7 +9,7 @@
+ #ifndef CONFIG_ARCH_HAS_CUSTOM_CPU_IDLE
+ void arch_cpu_idle(void)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	__asm__ volatile ("waiti 0");
+ }
+ #endif
+@@ -17,7 +17,7 @@ void arch_cpu_idle(void)
+ #ifndef CONFIG_ARCH_HAS_CUSTOM_CPU_ATOMIC_IDLE
+ void arch_cpu_atomic_idle(unsigned int key)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	__asm__ volatile ("waiti 0\n\t"
+ 			  "wsr.ps %0\n\t"
+ 			  "rsync" :: "a"(key));
+diff --git a/include/zephyr/tracing/tracing_macros.h b/include/zephyr/tracing/tracing_macros.h
+index 7e6c8d7b181..59ed3d62b39 100644
+--- a/include/zephyr/tracing/tracing_macros.h
++++ b/include/zephyr/tracing/tracing_macros.h
+@@ -197,6 +197,10 @@
+ 	#define sys_port_trace_type_mask_net(trace_call)
+ #endif
+
++#ifndef CONFIG_TRACING_IDLE
++	#define sys_port_trace_idle_is_disabled 1
++#endif
++
+ /*
+  * We cannot positively enumerate all traced APIs, as applications may trace
+  * arbitrary custom APIs we know nothing about. Therefore we demand that tracing
+diff --git a/soc/gaisler/leon3/idle.c b/soc/gaisler/leon3/idle.c
+index 0c94e63e294..0a93578529e 100644
+--- a/soc/gaisler/leon3/idle.c
++++ b/soc/gaisler/leon3/idle.c
+@@ -9,7 +9,7 @@
+
+ static void leon_idle(unsigned int key)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	irq_unlock(key);
+
+ 	__asm__ volatile ("wr  %g0, %asr19");
+diff --git a/soc/intel/intel_adsp/ace/power.c b/soc/intel/intel_adsp/ace/power.c
+index 34684e6756c..4dd229b9258 100644
+--- a/soc/intel/intel_adsp/ace/power.c
++++ b/soc/intel/intel_adsp/ace/power.c
+@@ -438,7 +438,7 @@ void arch_cpu_idle(void)
+ {
+ 	uint32_t cpu = arch_proc_id();
+
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+
+ 	/*
+ 	 * unlock and invalidate icache if clock gating is allowed
+diff --git a/soc/intel/intel_adsp/cavs/power.c b/soc/intel/intel_adsp/cavs/power.c
+index d3592b3a805..03ddd09b60f 100644
+--- a/soc/intel/intel_adsp/cavs/power.c
++++ b/soc/intel/intel_adsp/cavs/power.c
+@@ -208,7 +208,7 @@ void pm_state_exit_post_ops(enum pm_state state, uint8_t substate_id)
+ __no_optimization
+ void arch_cpu_idle(void)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+
+ 	/* Just spin forever with interrupts unmasked, for platforms
+ 	 * where WAITI can't be used or where its behavior is
+diff --git a/soc/ite/ec/it51xxx/soc.c b/soc/ite/ec/it51xxx/soc.c
+index df691a0784b..ad7ad83660d 100644
+--- a/soc/ite/ec/it51xxx/soc.c
++++ b/soc/ite/ec/it51xxx/soc.c
+@@ -55,7 +55,7 @@ void riscv_idle(enum chip_pll_mode mode, unsigned int key)
+ 	 * interrupt here to protect the below content.
+ 	 */
+ 	csr_clear(mie, MIP_MEIP);
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+
+ 	/* Chip doze after wfi instruction */
+ 	chip_pll_ctrl(mode);
+diff --git a/soc/ite/ec/it8xxx2/soc.c b/soc/ite/ec/it8xxx2/soc.c
+index e8a9b7fb3d7..e564031aa24 100644
+--- a/soc/ite/ec/it8xxx2/soc.c
++++ b/soc/ite/ec/it8xxx2/soc.c
+@@ -299,7 +299,7 @@ void riscv_idle(enum chip_pll_mode mode, unsigned int key)
+ 	 * interrupt here to protect the below content.
+ 	 */
+ 	csr_clear(mie, MIP_MEIP);
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ #ifdef CONFIG_ESPI
+ 	/*
+ 	 * H2RAM feature requires RAM clock to be active. Since the below doze
+diff --git a/soc/nordic/common/vpr/soc_idle.c b/soc/nordic/common/vpr/soc_idle.c
+index a5c7378fee9..3f927d9d7a1 100644
+--- a/soc/nordic/common/vpr/soc_idle.c
++++ b/soc/nordic/common/vpr/soc_idle.c
+@@ -13,7 +13,7 @@
+  */
+ void arch_cpu_idle(void)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	barrier_dsync_fence_full();
+ 	irq_unlock(MSTATUS_IEN);
+ 	__asm__ volatile("wfi");
+@@ -21,7 +21,7 @@ void arch_cpu_idle(void)
+
+ void arch_cpu_atomic_idle(unsigned int key)
+ {
+-	sys_trace_idle();
++	SYS_PORT_TRACING_FUNC(idle, enter);
+ 	barrier_dsync_fence_full();
+ 	irq_unlock(MSTATUS_IEN);
+ 	__asm__ volatile("wfi");
+diff --git a/soc/nordic/nrf54h/power.c b/soc/nordic/nrf54h/power.c
+index e1263be0d0e..d0ce013d5e2 100644
+--- a/soc/nordic/nrf54h/power.c
++++ b/soc/nordic/nrf54h/power.c
+@@ -184,21 +184,21 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
+ {
+ 	if (state == PM_STATE_SUSPEND_TO_IDLE) {
+ 		__disable_irq();
+-		sys_trace_idle();
++		SYS_PORT_TRACING_FUNC(idle, enter);
+ 		s2idle_enter(substate_id);
+ 		/* Resume here. */
+ 		s2idle_exit(substate_id);
+-		sys_trace_idle_exit();
++		SYS_PORT_TRACING_FUNC(idle, exit);
+ 		__enable_irq();
+ 	}
+ #if defined(CONFIG_PM_S2RAM)
+ 	else if (state == PM_STATE_SUSPEND_TO_RAM) {
+ 		__disable_irq();
+-		sys_trace_idle();
++		SYS_PORT_TRACING_FUNC(idle, enter);
+ 		s2ram_enter();
+ 		/* On resuming or error we return exactly *HERE* */
+ 		s2ram_exit();
+-		sys_trace_idle_exit();
++		SYS_PORT_TRACING_FUNC(idle, exit);
+ 		__enable_irq();
+ 	}
+ #endif
+diff --git a/soc/silabs/common/soc_power_pmgr.c b/soc/silabs/common/soc_power_pmgr.c
+index 402701c1c23..4c5e99f9b24 100644
+--- a/soc/silabs/common/soc_power_pmgr.c
++++ b/soc/silabs/common/soc_power_pmgr.c
+@@ -55,7 +55,7 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
+ 	} else if (energy_mode != SL_POWER_MANAGER_EM0) {
+ 		/* Calling the tracing and hook functions provided in arch_cpu_idle(). */
+ #if defined(CONFIG_TRACING)
+-		sys_trace_idle();
++		SYS_PORT_TRACING_FUNC(idle, enter);
+ #endif
+ #if CONFIG_ARM_ON_ENTER_CPU_IDLE_PREPARE_HOOK
+ 		z_arm_on_enter_cpu_idle_prepare();
+diff --git a/subsys/tracing/Kconfig b/subsys/tracing/Kconfig
+index 42527ca7cc5..d0d464521b9 100644
+--- a/subsys/tracing/Kconfig
++++ b/subsys/tracing/Kconfig
+@@ -363,6 +363,12 @@ config TRACING_GPIO
+ 	help
+ 	  Enable tracing GPIO.
+
++config TRACING_IDLE
++	bool "Tracing Idle"
++	default n
++	help
++	  Enable tracing Idle state.
++
+ endmenu  # Tracing Configuration
+
+ endif
+diff --git a/subsys/tracing/test/tracing_test.h b/subsys/tracing/test/tracing_test.h
+index a6208337e38..774658dd5e2 100644
+--- a/subsys/tracing/test/tracing_test.h
++++ b/subsys/tracing/test/tracing_test.h
+@@ -479,6 +479,11 @@
+ #define sys_port_trace_pm_device_runtime_disable_enter(dev)
+ #define sys_port_trace_pm_device_runtime_disable_exit(dev, ret)
+
++/* Idle state */
++#define sys_port_trace_idle_enter() sys_trace_idle()
++#define sys_port_trace_idle_exit() sys_trace_idle_exit()
++
++
+ void sys_trace_idle(void);
+ void sys_trace_idle_exit(void);
+ void sys_trace_isr_enter(void);
+--
+2.48.1
+

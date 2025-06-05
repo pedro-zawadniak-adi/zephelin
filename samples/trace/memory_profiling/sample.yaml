@@ -10,14 +10,14 @@ tests:
       type: one_line
       regex:
         - "Counter: 5"
-        - "zpl_memory_event stack 496B 528B"
-        - "zpl_memory_event heap 28B 164B"
+        - "zpl_memory_event stack \\d+B \\d+B"
+        - "zpl_memory_event heap \\d+B \\d+B"
         - "Counter: 4"
-        - "zpl_memory_event stack 512B 512B"
-        - "zpl_memory_event heap 56B 132B"
+        - "zpl_memory_event stack \\d+B \\d+B"
+        - "zpl_memory_event heap \\d+B \\d+B"
         - "Counter: 1"
-        - "zpl_memory_event stack 560B 464B"
-        - "zpl_memory_event heap 140B 36B"
+        - "zpl_memory_event stack \\d+B \\d+B"
+        - "zpl_memory_event heap \\d+B \\d+B"
     extra_configs:
       - CONFIG_TRACING_BUFFER_SIZE=4096
   sample.trace.memory_profiling.plaintext.robot:

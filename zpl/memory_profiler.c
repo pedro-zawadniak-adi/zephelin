@@ -39,8 +39,12 @@ void zpl_profile_memory(void)
 	}
 }
 
+#ifdef CONFIG_ZPL_MEMORY_USAGE_TRACE
+
 K_THREAD_DEFINE(zpl_memory_profiling,
 				CONFIG_ZPL_MEMORY_PROFILING_THREAD_STACK_SIZE,
 				zpl_profile_memory, NULL, NULL, NULL,
 				CONFIG_ZPL_MEMORY_PROFILING_THREAD_PRIORITY,
 				0, CONFIG_ZPL_MEMORY_PROFILING_THREAD_DELAY);
+
+#endif

@@ -5,12 +5,6 @@ patches:
     author: Filip Kokosinski
     email: fkokosinski@antmicro.com
     date: 2025-05-30
-  - path: zephyr/0001-Comment-sys_trace_idle-for-memory-tracing.patch
-    sha256sum: 1f0c08365bebea54ee26d7f8cc741eba649563be5b262313f4bd540a356a3b9f
-    module: zephyr
-    author: Krzysztof Sychla
-    email: ksychla@antmicro.com
-    date: 2025-06-03
   - path: zephyr/0001-arch-arm-aarch32-Refresh-CORTEX_M_DWT-in-menuconfig.patch
     sha256sum: c115931a28ec60588143284cf392b50b6250b9269216effa963e6963cda6aadf
     module: zephyr
@@ -107,3 +101,9 @@ patches:
     author: Maciej Torhan
     email: mtorhan@antmicro.com
     date: 2025-06-04
+  - path: zephyr/0001-Mute-Idle-traces.patch
+    sha256sum: da8b5d218329e8d951e85adc223c650b9eb2a9f5518a6c937b2911461fa15957
+    module: zephyr
+    author: Krzysztof Sychla
+    email: ksychla@antmicro.com
+    date: 2025-06-12
