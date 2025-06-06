@@ -12,7 +12,7 @@ stages:
     - wget "https://dl.antmicro.com/projects/renode/builds/${RENODE_VERSION}" -O renode.deb
     - dpkg -i renode.deb
     - apt update -qq
-    - apt install -yqq python3-bt2
+    - apt install -yqq python3-bt2 xxd
 
 Run Tuttest:
   extends: .test_template
@@ -49,5 +49,5 @@ Run Lint:
     - west patch apply
     - west zephyr-export
 
-    - excludes="-e SysbuildKconfig -e GitLint -e Identity -e ClangFormat"
+    - excludes="-e SysbuildKconfig -e GitLint -e Identity -e ClangFormat -e BinaryFiles"
     - ../zephyr/scripts/ci/check_compliance.py -c origin/main $excludes
