@@ -27,7 +27,7 @@ tests:
   sample.trace.named_event.trivial_uart.robot:
     tags: profiling
     platform_allow:
-      - max78002evkit_custom/max78002/m4
+      - max78002evkit/max78002/m4
     extra_configs:
       - CONFIG_ZPL_TRACE_BACKEND_TRIVIAL_UART=y
     harness: robot

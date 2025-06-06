@@ -83,3 +83,21 @@ patches:
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-04
+  - path: zephyr/0001-boards-adi-max78002evkit-add-renode-renode-robot-sup.patch
+    sha256sum: 9017c5673e37cef3bf8e0a7e227b3ca5d018ecd32212297d96a01cae321815ba
+    module: zephyr
+    author: Maciej Sobkowski
+    email: msobkowski@antmicro.com
+    date: 2025-06-06
+  - path: zephyr/0002-boards-adi-max32690fthr-add-renode-renode-robot-supp.patch
+    sha256sum: baac76797fb309ea3b08347da996484be1e93a3de7fb33a43177a45af9be37dd
+    module: zephyr
+    author: Maciej Sobkowski
+    email: msobkowski@antmicro.com
+    date: 2025-06-06
+  - path: zephyr/0003-boards-st-stm32f429i_disc1-renode-renode-robot-suppo.patch
+    sha256sum: 71dfd8d280911503c8896a2a225795d1b7d5ba206edb432c8b52e06adbed5b24
+    module: zephyr
+    author: Maciej Sobkowski
+    email: msobkowski@antmicro.com
+    date: 2025-06-06

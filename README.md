@@ -28,5 +28,5 @@ west sdk install
 Run the following command:
 <!-- name="build-samples -->
 ```shell
-west build -p -b max78002evkit_custom/max78002/m4 samples/trace/named_event
+west build -p -b max78002evkit/max78002/m4 samples/trace/named_event
 ```
