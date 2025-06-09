@@ -12,7 +12,8 @@ stages:
     - wget "https://dl.antmicro.com/projects/renode/builds/${RENODE_VERSION}" -O renode.deb
     - dpkg -i renode.deb
     - apt update -qq
-    - apt install -yqq python3-bt2 xxd
+    - apt install -yqq python3-bt2 xxd git-lfs
+    - git lfs pull
 
 Run Tuttest:
   extends: .test_template
