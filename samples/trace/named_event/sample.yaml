@@ -33,3 +33,10 @@ tests:
     harness: robot
     harness_config:
       robot_testsuite: named_event_plaintext_trivial_uart.robot
+  sample.trace.named_event.usb:
+    tags: profiling
+    platform_allow:
+      - stm32f429i_disc1/stm32f429xx
+    build_only: true
+    extra_configs:
+      - CONFIG_ZPL_TRACE_BACKEND_USB=y

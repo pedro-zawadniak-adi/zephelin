@@ -32,11 +32,27 @@ config ZPL_TRACE_BACKEND_UART
 config ZPL_TRACE_BACKEND_TRIVIAL_UART
 	bool "Trivial UART backend for Zephyr Profiling Library"
 
+config ZPL_TRACE_BACKEND_USB
+	bool "USB backend for Zephyr Profiling Library"
+	select GPIO
+	select TRACING_HANDLE_HOST_CMD
+	select USB_DEVICE_STACK
+
 endchoice
 
 config TRACING_BACKEND_NAME
 	string
+	default "tracing_backend_uart" if ZPL_TRACE_BACKEND_UART
 	default "tracing_backend_trivial_uart" if ZPL_TRACE_BACKEND_TRIVIAL_UART
+	default "tracing_backend_usb" if ZPL_TRACE_BACKEND_USB
+
+choice TRACING_BACKEND_CHOICE
+	default TRACING_BACKEND_USB if ZPL_TRACE_BACKEND_USB
+endchoice
+
+config USB_DEVICE_VID
+	# ZEPHYR USB-DEV
+	default 0x2FE9 if ZPL_TRACE_BACKEND_USB
 
 config ZPL_TRACE_CTF_MAX_STR_LEN
 	int "Maximum string length for CTF events"

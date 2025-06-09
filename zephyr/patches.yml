@@ -107,3 +107,9 @@ patches:
     author: Krzysztof Sychla
     email: ksychla@antmicro.com
     date: 2025-06-12
+  - path: zephyr/0001-subsys-tracing-add-names-to-Kconfig-choice-symbols.patch
+    sha256sum: 551b5ba8284bc2fa5397c25f50af6c1475d4916adc54430aa061a4b7e748ce7d
+    module: zephyr
+    author: Filip Kokosinski
+    email: fkokosinski@antmicro.com
+    date: 2025-06-09
