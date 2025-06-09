@@ -3,6 +3,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/tracing/tracing_format.h>
 
+#include <stdio.h>
+
 void zpl_emit_tflm_begin_event(
 	uint32_t cycles, uint16_t subgraph_idx, uint16_t op_idx, const char *tag,
 	uint32_t arena_used_bytes, uint32_t arena_tail_usage)

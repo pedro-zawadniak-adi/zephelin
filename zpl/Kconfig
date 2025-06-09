@@ -21,6 +21,11 @@ config ZPL_TRACE_FORMAT_CTF
 
 endchoice
 
+choice TRACING_FORMAT_CHOICE
+	default TRACING_TEST if ZPL_TRACE_FORMAT_PLAINTEXT
+	default TRACING_CTF if ZPL_TRACE_FORMAT_CTF
+endchoice
+
 choice
 	prompt "Zephyr Profiling Library trace backend"
 	default ZPL_TRACE_BACKEND_UART
@@ -28,9 +33,11 @@ choice
 
 config ZPL_TRACE_BACKEND_UART
 	bool "UART backend for Zephyr Profiling Library"
+	select UART
 
 config ZPL_TRACE_BACKEND_TRIVIAL_UART
 	bool "Trivial UART backend for Zephyr Profiling Library"
+	select UART
 
 config ZPL_TRACE_BACKEND_USB
 	bool "USB backend for Zephyr Profiling Library"
@@ -47,6 +54,7 @@ config TRACING_BACKEND_NAME
 	default "tracing_backend_usb" if ZPL_TRACE_BACKEND_USB
 
 choice TRACING_BACKEND_CHOICE
+	default TRACING_BACKEND_UART if ZPL_TRACE_BACKEND_UART
 	default TRACING_BACKEND_USB if ZPL_TRACE_BACKEND_USB
 endchoice
 
