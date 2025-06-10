@@ -2,9 +2,16 @@
 #include <zephyr/kernel.h>
 #include <zpl/lib.h>
 
+K_MEM_SLAB_DEFINE(test_mem_slab, 256, 32, 4);
+K_HEAP_DEFINE(test_k_heap, 1024);
 
 void recursive_function(int counter)
 {
+	char *block_ptr;
+	if (k_mem_slab_alloc(&test_mem_slab, (void **)&block_ptr, K_MSEC(100)) == 0) {
+		memset(block_ptr, 0, 100);
+	}
+	int *k_heap_variable = k_heap_alloc(&test_k_heap, 7, K_MSEC(100));
 	int *heap_variable = k_malloc(sizeof(int) * 5);
 
 	printk("Counter: %d\n", counter);
@@ -13,6 +20,8 @@ void recursive_function(int counter)
 		recursive_function(counter - 1);
 	}
 	k_free(heap_variable);
+	k_heap_free(&test_k_heap, k_heap_variable);
+	k_mem_slab_free(&test_mem_slab, block_ptr);
 }
 
 int main(void)
