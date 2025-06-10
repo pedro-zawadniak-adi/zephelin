@@ -2,11 +2,10 @@
 Provides LiteRT (TFLite) model data extractor.
 """
 
-from pathlib import Path
 import argparse
+from pathlib import Path
 
 import yaml
-
 from ai_edge_litert.interpreter import Interpreter
 
 
@@ -40,6 +39,7 @@ def extract_model_data(model_path: Path) -> dict:
         for io, io_name in zip(
             io_details,
             interpreter.get_signature_list()["serving_default"][f"{io_type}s"],
+            strict=False,
         ):
             io_data = dict()
             io_data["name"] = io_name
@@ -51,9 +51,7 @@ def extract_model_data(model_path: Path) -> dict:
             io_data["quantization_parameters"] = {
                 "scales": io["quantization_parameters"]["scales"].tolist(),
                 "zero_points": io["quantization_parameters"]["zero_points"].tolist(),
-                "quantized_dimension": io["quantization_parameters"][
-                    "quantized_dimension"
-                ],
+                "quantized_dimension": io["quantization_parameters"]["quantized_dimension"],
             }
 
             model_data[f"{io_type}s"].append(io_data)
@@ -73,12 +71,8 @@ def extract_model_data(model_path: Path) -> dict:
             tensor_data["quantization"] = tensor["quantization"]
             tensor_data["quantization_parameters"] = {
                 "scales": tensor["quantization_parameters"]["scales"].tolist(),
-                "zero_points": tensor["quantization_parameters"][
-                    "zero_points"
-                ].tolist(),
-                "quantized_dimension": tensor["quantization_parameters"][
-                    "quantized_dimension"
-                ],
+                "zero_points": tensor["quantization_parameters"]["zero_points"].tolist(),
+                "quantized_dimension": tensor["quantization_parameters"]["quantized_dimension"],
             }
             model_data["tensors"].append(tensor_data)
 
@@ -109,9 +103,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         "Script for extracting TFLite model information", allow_abbrev=False
     )
-    parser.add_argument(
-        "--model-path", type=Path, required=True, help="Path to the TFLite model"
-    )
+    parser.add_argument("--model-path", type=Path, required=True, help="Path to the TFLite model")
     parser.add_argument(
         "--output-path",
         type=Path,
