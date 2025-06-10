@@ -55,7 +55,7 @@ index 00000000000..8351f9716cc
 +
 +using sysbus
 +mach create $name
-+machine LoadPlatformDescription @platforms/boards/stm32f4_discovery-kit.repl
++machine LoadPlatformDescription @https://zephyr-dashboard.renode.io/zephyr_sim/54b826336bae437f851fcba332481e24a7e1532d/0e512aebf21a8c51bda51fa67354277811f10a40/stm32f429i_disc1/hello_world/hello_world.repl
 +
 +showAnalyzer sysbus.usart1
 +
