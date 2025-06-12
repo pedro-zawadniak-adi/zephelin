@@ -14,6 +14,10 @@ Should Display Memory Usage
 	Wait For Bytes On Uart	73 74 61 63 6b 00 00 00 00 00
 # heap
 	Wait For Bytes On Uart	68 65 61 70 00 00 00 00 00 00
+# k_heap
+	Wait For Bytes On Uart	6b 5f 68 65 61 70 00 00 00 00
+# mem_slab
+	Wait For Bytes On Uart	6d 65 6d 5f 73 6c 61 62 00 00
 
 # Counter: 4
 	Wait For Bytes On Uart	43 6f 75 6e 74 65 72 3a 20 34
@@ -21,6 +25,10 @@ Should Display Memory Usage
 	Wait For Bytes On Uart	73 74 61 63 6b 00 00 00 00 00
 # heap
 	Wait For Bytes On Uart	68 65 61 70 00 00 00 00 00 00
+# k_heap
+	Wait For Bytes On Uart	6b 5f 68 65 61 70 00 00 00 00
+# mem_slab
+	Wait For Bytes On Uart	6d 65 6d 5f 73 6c 61 62 00 00
 
 # Counter: 1
 	Wait For Bytes On Uart	43 6f 75 6e 74 65 72 3a 20 31
@@ -28,3 +36,7 @@ Should Display Memory Usage
 	Wait For Bytes On Uart	73 74 61 63 6b 00 00 00 00 00
 # heap
 	Wait For Bytes On Uart	68 65 61 70 00 00 00 00 00 00
+# k_heap
+	Wait For Bytes On Uart	6b 5f 68 65 61 70 00 00 00 00
+# mem_slab
+	Wait For Bytes On Uart	6d 65 6d 5f 73 6c 61 62 00 00
