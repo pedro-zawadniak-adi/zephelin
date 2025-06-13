@@ -113,3 +113,51 @@ patches:
     author: Filip Kokosinski
     email: fkokosinski@antmicro.com
     date: 2025-06-09
+  - path: zephyr/0001-add-tvm-files.patch
+    sha256sum: 8eaf2d1451fd91794067459ef4aede8e55310ee81282902c30d24f8f57de9faa
+    module: zephyr
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-06-06
+  - path: zephyr/0001-add-dlpack-files.patch
+    sha256sum: ddcad6986ad087385bc0bcb4c7e0683ddff67d1924005ac8d569dda48745a1e5
+    module: zephyr
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-06-09
+  - path: tvm/0001-add-zephyr-files.patch
+    sha256sum: 17c04ab2b67127fb09f4cf069900ce3f8e37e6ff7ca0d6d1c51c6f7f4a19ddec
+    module: tvm
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-06-06
+  - path: tvm/0002-nop-fix.patch
+    sha256sum: efa213e0aad846360c570cb2b92c7cd4f9d5cbd181680fb966f7246defa0428b
+    module: tvm
+    author: Mikołaj Klikowicz
+    email: mklikowicz@internships.antmicro.com
+    date: 2025-06-06
+  - path: tvm/0003-memory-leak-fix.patch
+    sha256sum: 6f6aa8d69f68afb0ac1155320abea3642280249df419d6a519cc53b5234e84c6
+    module: tvm
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-06-06
+  - path: tvm/0004-add-profiler.patch
+    sha256sum: 7bde44554b575ec9f2a9e2634d3931b7e02a67160eac32a037d644b3831e3a70
+    module: tvm
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-06-11
+  - path: tvm/0005-optimize-packed-func-size.patch
+    sha256sum: 1e83aaced1012fb3e8312024ee0990bf368cd894968fe8e3b6ce9820dac84915
+    module: tvm
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-06-12
+  - path: dlpack/0001-add-zephyr-files.patch
+    sha256sum: d05aa2ae6654be3bc33d0c03e3dfaa4ef56c3627e627788a13a52f5a2f7bee33
+    module: dlpack
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-06-09

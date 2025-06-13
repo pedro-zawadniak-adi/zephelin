@@ -1,0 +1,89 @@
+diff --git a/include/tvm/runtime/crt/graph_executor.h b/include/tvm/runtime/crt/graph_executor.h
+index 1353d8e06..da7f16f2b 100644
+--- a/include/tvm/runtime/crt/graph_executor.h
++++ b/include/tvm/runtime/crt/graph_executor.h
+@@ -31,6 +31,7 @@ extern "C" {
+ #include <dlpack/dlpack.h>
+ #include <tvm/runtime/c_runtime_api.h>
+ #include <tvm/runtime/crt/packed_func.h>
++#include <tvm/runtime/crt/profiler.h>
+ 
+ struct TVMModule;
+ 
+@@ -113,8 +114,9 @@ int TVMGraphExecutor_LoadParams(TVMGraphExecutor* executor, const char* param_bl
+ /*!
+  * \brief Execute the graph.
+  * \param executor The graph executor.
++ * \param profiler TVMProfiler struct.
+  */
+-void TVMGraphExecutor_Run(TVMGraphExecutor* executor);
++void TVMGraphExecutor_Run(TVMGraphExecutor* executor, const TVMProfiler *profiler);
+ 
+ /*!
+  * \brief Release memory associated with the graph executor.
+diff --git a/include/tvm/runtime/crt/profiler.h b/include/tvm/runtime/crt/profiler.h
+new file mode 100644
+index 000000000..534996eea
+--- /dev/null
++++ b/include/tvm/runtime/crt/profiler.h
+@@ -0,0 +1,9 @@
++#ifndef TVM_RUNTIME_CRT_PROFILER_H_
++#define TVM_RUNTIME_CRT_PROFILER_H_
++
++typedef struct {
++   int (*begin_event_cb)(int, const char*);
++   void (*end_event_cb)(int);
++} TVMProfiler;
++
++#endif // TVM_RUNTIME_CRT_PROFILER_H_
+diff --git a/src/runtime/crt/graph_executor/graph_executor.c b/src/runtime/crt/graph_executor/graph_executor.c
+index 395a343cc..ebb6dc34d 100644
+--- a/src/runtime/crt/graph_executor/graph_executor.c
++++ b/src/runtime/crt/graph_executor/graph_executor.c
+@@ -877,8 +926,9 @@ int TVMGraphExecutor_LoadParams(TVMGraphExecutor* executor, const char* param_bl
+ /*!
+  * \brief Run all the operations one by one.
+  * \param executor The graph executor.
++ * \param profiler TVMProfiler struct.
+  */
+-void TVMGraphExecutor_Run(TVMGraphExecutor* executor) {
++void TVMGraphExecutor_Run(TVMGraphExecutor* executor, const TVMProfiler* profiler) {
+   // setup the array and requirements.
+   uint32_t idx;
+   for (idx = 0; idx < executor->op_execs_count; ++idx) {
+@@ -886,7 +886,14 @@ void TVMGraphExecutor_Run(TVMGraphExecutor* executor) {
+ #if TVM_CRT_DEBUG
+       printf("calling: %s (%d)\n", executor->op_execs[idx].name, idx);
+ #endif  // TVM_CRT_DEBUG
++      int event_handle = -1;
++      if (NULL != profiler && NULL != profiler->begin_event_cb) {
++        event_handle = profiler->begin_event_cb(idx, executor->op_execs[idx].name);
++      }
+       executor->op_execs[idx].Call(&(executor->op_execs[idx]));
++      if (-1 != event_handle && NULL != profiler->end_event_cb) {
++        profiler->end_event_cb(event_handle);
++      }
+     }
+   }
+ }
+diff --git a/src/runtime/crt/include/tvm/runtime/crt/internal/graph_executor/graph_executor.h b/src/runtime/crt/include/tvm/runtime/crt/internal/graph_executor/graph_executor.h
+index d4429308b..d345974ec 100644
+--- a/src/runtime/crt/include/tvm/runtime/crt/internal/graph_executor/graph_executor.h
++++ b/src/runtime/crt/include/tvm/runtime/crt/internal/graph_executor/graph_executor.h
+@@ -32,6 +32,7 @@ extern "C" {
+ #include <tvm/runtime/crt/internal/common/ndarray.h>
+ #include <tvm/runtime/crt/internal/graph_executor/load_json.h>
+ #include <tvm/runtime/crt/module.h>
++#include <tvm/runtime/crt/profiler.h>
+ 
+ // Memory pool entry.
+ typedef struct TVMGraphExecutorPoolEntry {
+@@ -115,7 +116,7 @@ uint32_t TVMGraphExecutor_GetEntryId(TVMGraphExecutor* executor, uint32_t nid, u
+ void TVMGraphExecutor_SetInput(TVMGraphExecutor* executor, const char* name, DLTensor* data_in);
+ int TVMGraphExecutor_LoadParams(TVMGraphExecutor* executor, const char* param_blob,
+                                 const uint32_t param_size);
+-void TVMGraphExecutor_Run(TVMGraphExecutor* executor);
++void TVMGraphExecutor_Run(TVMGraphExecutor* executor, const TVMProfiler* profiler);
+ int TVMGraphExecutor_GetOutput(TVMGraphExecutor* executor, const int32_t idx, DLTensor* out);
+ 
+ int32_t TVMGraphExecutor_CreateTVMOp(TVMGraphExecutor* executor, const TVMOpParam* param,

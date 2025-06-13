@@ -5,6 +5,10 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: antmicro
       url-base: https://github.com/antmicro
+    - name: apache
+      url-base: https://github.com/apache
+    - name: dmlc
+      url-base: https://github.com/dmlc
 
   projects:
     - name: zephyr
@@ -16,3 +20,9 @@ manifest:
           - hal_adi
           - hal_stm32
           - tflite-micro
+    - name: tvm
+      remote: apache
+      revision: v0.18.0
+    - name: dlpack
+      remote: dmlc
+      revision: main
