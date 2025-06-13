@@ -3,4 +3,7 @@ common:
   integration_platforms:
     - qemu_cortex_m0
 tests:
-  lib.basic: {}
+  zpl.lib.init: {}
+  zpl.lib.init.usb:
+    extra_args:
+      - EXTRA_CFLAGS=-DCONFIG_ZPL_TRACE_BACKEND_USB
