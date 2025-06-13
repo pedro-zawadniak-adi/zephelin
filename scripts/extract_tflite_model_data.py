@@ -101,7 +101,7 @@ def extract_model_data(model_path: Path) -> dict:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        "Script for extracting TFLite model information", allow_abbrev=False
+        description="Script for extracting TFLite model information", allow_abbrev=False
     )
     parser.add_argument("--model-path", type=Path, required=True, help="Path to the TFLite model")
     parser.add_argument(
