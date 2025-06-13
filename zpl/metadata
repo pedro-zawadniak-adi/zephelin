@@ -30,6 +30,24 @@ enum zpl_memory_region : uint8_t {
 };
 
 event {
+	name = zpl_tvm_begin_event;
+	id = 0xB0;
+	fields := struct {
+		uint8_t op_idx;
+		ctf_bounded_string_t tag[60];
+	};
+};
+
+event {
+	name = zpl_tvm_end_event;
+	id = 0xB1;
+	fields := struct {
+		uint8_t op_idx;
+		ctf_bounded_string_t tag[60];
+	};
+};
+
+event {
 	name = zpl_memory_event;
 	id = 0xEE;
 	fields := struct {

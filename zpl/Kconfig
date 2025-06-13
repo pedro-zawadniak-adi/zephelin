@@ -67,6 +67,11 @@ config ZPL_TRACE_CTF_MAX_STR_LEN
 	default 20
 	depends on ZPL_TRACE_FORMAT_CTF
 
+config ZPL_TRACE_CTF_MAX_LONG_STR_LEN
+	int "Maximum long string length for CTF events"
+	default 60
+	depends on ZPL_TRACE_FORMAT_CTF
+
 config ZPL_MEMORY_PROFILING
 	bool "Memory profiling"
 	depends on ZPL
@@ -160,3 +165,16 @@ endchoice
 
 config ZPL_MEMORY_USAGE_TRACE
 	bool "Enables memory usage traces"
+
+config ZPL_TVM_EVENTS
+	bool "Enables micro TVM events"
+	depends on ZPL
+
+config ZPL_TVM_PROFILER
+	bool "Enables micro TVM profiler"
+	depends on ZPL
+
+config ZPL_TVM_PROFILER_MAX_EVENTS
+	int "Max number of buffered event"
+	default 32
+	depends on ZPL_TVM_PROFILER
