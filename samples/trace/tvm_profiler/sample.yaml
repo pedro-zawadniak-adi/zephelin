@@ -1,0 +1,27 @@
+sample:
+  name: simple
+common:
+  tags: profiling
+  harness: console
+  harness_config:
+    type: one_line
+    regex:
+      - "zpl_tvm_begin_event: op_idx=3 tag=tvmgen_default_fused_nn_conv2d_add_nn_relu"
+      - "zpl_tvm_end_event: op_idx=3 tag=tvmgen_default_fused_nn_conv2d_add_nn_relu"
+tests:
+  sample.trace.tvm_profiler.plaintext:
+    tags: profiling
+  sample.trace.tvm_profiler.plaintext.robot:
+    tags: profiling
+    harness: robot
+    harness_config:
+      robot_testsuite: tvm_profiler_plaintext.robot
+  sample.trace.tvm_profiler.ctf.robot:
+    tags: profiling
+    extra_configs:
+      - CONFIG_ZPL_TRACE_FORMAT_PLAINTEXT=n
+      - CONFIG_TRACING_TEST=n
+      - CONFIG_TRACING_CTF=y
+    harness: robot
+    harness_config:
+      robot_testsuite: tvm_profiler_ctf.robot
