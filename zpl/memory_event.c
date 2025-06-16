@@ -3,7 +3,7 @@
 
 #include <zpl/memory_event.h>
 
-void zpl_emit_memory_event(const char *memory_region, uint32_t used_memory, uint32_t unused_memory)
+void zpl_emit_memory_event(const char *memory_region, uintptr_t memory_addr, uint32_t used_memory, uint32_t unused_memory)
 {
 #if defined(CONFIG_ZPL_TRACE_FORMAT_CTF)
 	uint32_t cycles = k_cycle_get_32();
@@ -11,6 +11,7 @@ void zpl_emit_memory_event(const char *memory_region, uint32_t used_memory, uint
 	zpl_memory_event_t memory_event = {
 		.timestamp = k_cyc_to_ns_floor64(cycles),
 		.id = ZPL_MEMORY_EVENT,
+		.memory_addr = memory_addr,
 		.used = used_memory,
 		.unused = unused_memory,
 	};
@@ -22,7 +23,7 @@ void zpl_emit_memory_event(const char *memory_region, uint32_t used_memory, uint
 	);
 #elif defined(CONFIG_ZPL_TRACE_FORMAT_PLAINTEXT)
 	TRACING_STRING(
-		 "zpl_memory_event %s %uB %uB\n", memory_region, used_memory, unused_memory
+		 "zpl_memory_event %s (%#x) %uB %uB\n", memory_region, memory_addr, used_memory, unused_memory
 	);
 #endif /* CONFIG_ZPL_TRACE_FORMAT_* */
 }

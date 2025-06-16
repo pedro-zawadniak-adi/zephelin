@@ -10,20 +10,20 @@ tests:
       type: one_line
       regex:
         - "Counter: 5"
-        - "zpl_memory_event stack \\d+B \\d+B"
-        - "zpl_memory_event heap \\d+B \\d+B"
-        - "zpl_memory_event k_heap \\d+B \\d+B"
-        - "zpl_memory_event mem_slab \\d+B \\d+B"
+        - "zpl_memory_event stack \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event heap \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event k_heap \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event mem_slab \\(0x[0-9a-f]+\\) \\d+B \\d+B"
         - "Counter: 4"
-        - "zpl_memory_event stack \\d+B \\d+B"
-        - "zpl_memory_event heap \\d+B \\d+B"
-        - "zpl_memory_event k_heap \\d+B \\d+B"
-        - "zpl_memory_event mem_slab \\d+B \\d+B"
+        - "zpl_memory_event stack \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event heap \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event k_heap \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event mem_slab \\(0x[0-9a-f]+\\) \\d+B \\d+B"
         - "Counter: 1"
-        - "zpl_memory_event stack \\d+B \\d+B"
-        - "zpl_memory_event heap \\d+B \\d+B"
-        - "zpl_memory_event k_heap \\d+B \\d+B"
-        - "zpl_memory_event mem_slab \\d+B \\d+B"
+        - "zpl_memory_event stack \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event heap \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event k_heap \\(0x[0-9a-f]+\\) \\d+B \\d+B"
+        - "zpl_memory_event mem_slab \\(0x[0-9a-f]+\\) \\d+B \\d+B"
     extra_configs:
       - CONFIG_TRACING_BUFFER_SIZE=4096
   sample.trace.memory_profiling.plaintext.robot:
