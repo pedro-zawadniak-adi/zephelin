@@ -22,11 +22,19 @@ event {
 	};
 };
 
+enum zpl_memory_region : uint8_t {
+	ZPL_STACK,
+	ZPL_HEAP,
+	ZPL_K_HEAP,
+	ZPL_MEM_SLAB,
+};
+
 event {
 	name = zpl_memory_event;
 	id = 0xEE;
 	fields := struct {
-		ctf_bounded_string_t memory_id[10];
+		enum zpl_memory_region memory_region;
+		uint32_t memory_addr;
 		uint32_t used;
 		uint32_t unused;
 	};
