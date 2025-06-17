@@ -3,7 +3,7 @@
 
 #include <zpl/memory_event.h>
 
-void zpl_emit_memory_event(const char *memory_region, uintptr_t memory_addr, uint32_t used_memory, uint32_t unused_memory)
+void zpl_emit_memory_event(enum zpl_memory_region memory_region, uintptr_t memory_addr, uint32_t used_memory, uint32_t unused_memory)
 {
 #if defined(CONFIG_ZPL_TRACE_FORMAT_CTF)
 	uint32_t cycles = k_cycle_get_32();
@@ -11,19 +11,33 @@ void zpl_emit_memory_event(const char *memory_region, uintptr_t memory_addr, uin
 	zpl_memory_event_t memory_event = {
 		.timestamp = k_cyc_to_ns_floor64(cycles),
 		.id = ZPL_MEMORY_EVENT,
+		.memory_region = memory_region,
 		.memory_addr = memory_addr,
 		.used = used_memory,
 		.unused = unused_memory,
 	};
-	memset(&(memory_event.memory_region[0]), 0, 10);
-	snprintf(&(memory_event.memory_region[0]), 10, "%s", memory_region);
 
 	tracing_format_raw_data(
 		(uint8_t *)&memory_event, sizeof(zpl_memory_event_t)
 	);
 #elif defined(CONFIG_ZPL_TRACE_FORMAT_PLAINTEXT)
 	TRACING_STRING(
-		 "zpl_memory_event %s (%#x) %uB %uB\n", memory_region, memory_addr, used_memory, unused_memory
+		 "zpl_memory_event %s (%#x) %uB %uB\n", zpl_memory_region_enum_to_string(memory_region), memory_addr, used_memory, unused_memory
 	);
 #endif /* CONFIG_ZPL_TRACE_FORMAT_* */
+}
+
+const char* zpl_memory_region_enum_to_string(enum zpl_memory_region memory_region)
+{
+	switch (memory_region) {
+		case ZPL_STACK:
+			return "stack";
+		case ZPL_HEAP:
+			return "heap";
+		case ZPL_K_HEAP:
+			return "k_heap";
+		case ZPL_MEM_SLAB:
+			return "mem_slab";
+	}
+	return "<unknown>";
 }

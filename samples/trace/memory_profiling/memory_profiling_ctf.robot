@@ -1,3 +1,11 @@
+*** Variables ***
+${COUNTER_HEX}          43 6f 75 6e 74 65 72 3a 20
+${ZPL_MEMORY_EVENT}     EE
+${ZPL_STACK}            00
+${ZPL_HEAP}             01
+${ZPL_K_HEAP}           02
+${ZPL_MEM_SLAB}         03
+
 *** Settings ***
 Resource			${KEYWORDS}
 
@@ -9,34 +17,22 @@ Should Display Memory Usage
 	Write Char Delay	0.01
 
 # Counter: 5
-	Wait For Bytes On Uart	43 6f 75 6e 74 65 72 3a 20 35
-# stack
-	Wait For Bytes On Uart	73 74 61 63 6b 00 00 00 00 00
-# heap
-	Wait For Bytes On Uart	68 65 61 70 00 00 00 00 00 00
-# k_heap
-	Wait For Bytes On Uart	6b 5f 68 65 61 70 00 00 00 00
-# mem_slab
-	Wait For Bytes On Uart	6d 65 6d 5f 73 6c 61 62 00 00
+	Wait For Bytes On Uart  ${COUNTER_HEX} 35
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_STACK}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_HEAP}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_K_HEAP}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_MEM_SLAB}
 
 # Counter: 4
-	Wait For Bytes On Uart	43 6f 75 6e 74 65 72 3a 20 34
-# stack
-	Wait For Bytes On Uart	73 74 61 63 6b 00 00 00 00 00
-# heap
-	Wait For Bytes On Uart	68 65 61 70 00 00 00 00 00 00
-# k_heap
-	Wait For Bytes On Uart	6b 5f 68 65 61 70 00 00 00 00
-# mem_slab
-	Wait For Bytes On Uart	6d 65 6d 5f 73 6c 61 62 00 00
+	Wait For Bytes On Uart  ${COUNTER_HEX} 34
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_STACK}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_HEAP}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_K_HEAP}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_MEM_SLAB}
 
 # Counter: 1
-	Wait For Bytes On Uart	43 6f 75 6e 74 65 72 3a 20 31
-# stack
-	Wait For Bytes On Uart	73 74 61 63 6b 00 00 00 00 00
-# heap
-	Wait For Bytes On Uart	68 65 61 70 00 00 00 00 00 00
-# k_heap
-	Wait For Bytes On Uart	6b 5f 68 65 61 70 00 00 00 00
-# mem_slab
-	Wait For Bytes On Uart	6d 65 6d 5f 73 6c 61 62 00 00
+	Wait For Bytes On Uart  ${COUNTER_HEX} 31
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_STACK}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_HEAP}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_K_HEAP}
+	Wait For Bytes On Uart  ${ZPL_MEMORY_EVENT} ${ZPL_MEM_SLAB}

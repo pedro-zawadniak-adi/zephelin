@@ -5,15 +5,23 @@
 
 #define ZPL_MEMORY_EVENT 0xEE
 
+enum zpl_memory_region {
+	ZPL_STACK,
+	ZPL_HEAP,
+	ZPL_K_HEAP,
+	ZPL_MEM_SLAB,
+};
+
 typedef struct __packed {
 	uint32_t timestamp;
 	uint8_t id;
-	uint8_t memory_region[10];
+	enum zpl_memory_region memory_region;
 	uintptr_t memory_addr;
 	uint32_t used;
 	uint32_t unused;
 } zpl_memory_event_t;
 
-void zpl_emit_memory_event(const char *memory_region, uintptr_t memory_addr, uint32_t used_memory, uint32_t unused_memory);
+void zpl_emit_memory_event(enum zpl_memory_region memory_region, uintptr_t memory_addr, uint32_t used_memory, uint32_t unused_memory);
+const char* zpl_memory_region_enum_to_string(enum zpl_memory_region memory_region);
 
 #endif /* ZEPHYR_PROFILING_LIB_MEMORY_EVENT_H_ */
