@@ -38,3 +38,11 @@ tests:
     build_only: true
     extra_configs:
       - CONFIG_ZPL_TRACE_BACKEND_USB=y
+  sample.trace.named_event.debugger:
+    tags: profiling
+    extra_configs:
+      - CONFIG_ZPL_TRACE_BACKEND_DEBUGGER=y
+      - CONFIG_RAM_TRACING_BUFFER_SIZE=10240
+    harness: robot
+    harness_config:
+      robot_testsuite: named_event_plaintext_debugger.robot

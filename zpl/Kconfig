@@ -45,6 +45,9 @@ config ZPL_TRACE_BACKEND_USB
 	select TRACING_HANDLE_HOST_CMD
 	select USB_DEVICE_STACK
 
+config ZPL_TRACE_BACKEND_DEBUGGER
+	bool "Debugger backend for Zephyr Profiling Library"
+
 endchoice
 
 config TRACING_BACKEND_NAME
@@ -52,10 +55,12 @@ config TRACING_BACKEND_NAME
 	default "tracing_backend_uart" if ZPL_TRACE_BACKEND_UART
 	default "tracing_backend_trivial_uart" if ZPL_TRACE_BACKEND_TRIVIAL_UART
 	default "tracing_backend_usb" if ZPL_TRACE_BACKEND_USB
+	default "tracing_backend_ram" if ZPL_TRACE_BACKEND_DEBUGGER
 
 choice TRACING_BACKEND_CHOICE
 	default TRACING_BACKEND_UART if ZPL_TRACE_BACKEND_UART
 	default TRACING_BACKEND_USB if ZPL_TRACE_BACKEND_USB
+	default TRACING_BACKEND_RAM if ZPL_TRACE_BACKEND_DEBUGGER
 endchoice
 
 config USB_DEVICE_VID

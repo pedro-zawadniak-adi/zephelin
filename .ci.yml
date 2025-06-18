@@ -12,7 +12,7 @@ stages:
     - wget "https://dl.antmicro.com/projects/renode/builds/${RENODE_VERSION}" -O renode.deb
     - dpkg -i renode.deb
     - apt update -qq
-    - apt install -yqq python3-bt2 xxd git-lfs
+    - apt install -yqq python3-bt2 xxd git-lfs gdb-multiarch
     - git lfs pull
 
 Run Tuttest:
@@ -31,6 +31,7 @@ Run Twister:
     - max32690fthr/max32690/m4
     - stm32f429i_disc1/stm32f429xx
   script:
+    - source env.sh
     - west init -l .
     - west update
     - west patch apply
