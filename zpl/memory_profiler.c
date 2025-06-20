@@ -1,4 +1,5 @@
 #include <zpl/memory_event.h>
+#include <zpl/configuration.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/sys/iterable_sections.h>
@@ -50,6 +51,7 @@ void zpl_profile_k_heaps(void)
 void zpl_profile_memory(void)
 {
 	while (true) {
+		zpl_wait_for_usage_trace_enabled();
 		k_thread_foreach(zpl_profile_stack, NULL);
 		zpl_profile_heap();
 		zpl_profile_k_heaps();
@@ -58,12 +60,8 @@ void zpl_profile_memory(void)
 	}
 }
 
-#ifdef CONFIG_ZPL_MEMORY_USAGE_TRACE
-
 K_THREAD_DEFINE(zpl_memory_profiling,
 				CONFIG_ZPL_MEMORY_PROFILING_THREAD_STACK_SIZE,
 				zpl_profile_memory, NULL, NULL, NULL,
 				CONFIG_ZPL_MEMORY_PROFILING_THREAD_PRIORITY,
 				0, CONFIG_ZPL_MEMORY_PROFILING_THREAD_DELAY);
-
-#endif

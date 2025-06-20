@@ -183,3 +183,17 @@ config ZPL_TVM_PROFILER_MAX_EVENTS
 	int "Max number of buffered event"
 	default 32
 	depends on ZPL_TVM_PROFILER
+
+choice
+	prompt "Zpl runtime configuration method"
+	default ZPL_RUNTIME_CONFIG_NONE
+
+config ZPL_RUNTIME_CONFIG_NONE
+	bool "No runtime configuration"
+
+config ZPL_RUNTIME_CONFIG_UART
+	bool "Runtime configuration via UART"
+	select SHELL
+	select SHELL_MINIMAL
+
+endchoice

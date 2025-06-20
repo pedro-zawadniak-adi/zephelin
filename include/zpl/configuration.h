@@ -1,0 +1,6 @@
+#ifndef ZEPHYR_PROFILING_LIB_CONFIGURATION_H_
+#define ZEPHYR_PROFILING_LIB_CONFIGURATION_H_
+
+void zpl_wait_for_usage_trace_enabled(void);
+
+#endif /* ZEPHYR_PROFILING_LIB_CONFIGURATION_H_ */
