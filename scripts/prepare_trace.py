@@ -40,13 +40,24 @@ CUSTOM_EVENTS = {
     "TFLM::": ("zpl_tflm_begin_event", "zpl_tflm_end_event", tflm_name),
 }
 
+
+def memory_name(msg):
+    """
+    Generates suffix for Memory event name.
+    """
+    if not (args := msg.event.payload_field):
+        return ""
+    try:
+        # Get enum label and remove ZPL_ prefix
+        return args["memory_region"].labels[0][4:]
+    except Exception:
+        return ""
+
+
 # The dictionary of custom metadata events, where the key is CTF event name
 # and values tuples of new event name and function producing name suffix.
 CUSTOM_METADATA = {
-    "zpl_memory_event": (
-        "MEMORY::",
-        lambda msg: msg.event.payload_field.get("memory_id", "") if msg.event.payload_field else "",
-    ),
+    "zpl_memory_event": ("MEMORY::", memory_name),
 }
 
 
