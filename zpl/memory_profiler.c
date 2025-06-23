@@ -51,7 +51,7 @@ void zpl_profile_k_heaps(void)
 void zpl_profile_memory(void)
 {
 	while (true) {
-		zpl_wait_for_usage_trace_enabled();
+		ZPL_WAIT_FOR_CONF(mem_usage_trace);
 		k_thread_foreach(zpl_profile_stack, NULL);
 		zpl_profile_heap();
 		zpl_profile_k_heaps();

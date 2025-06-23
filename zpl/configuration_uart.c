@@ -2,47 +2,63 @@
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 
-K_MUTEX_DEFINE(conf_lock);
-K_CONDVAR_DEFINE(conf_condvar);
-
-volatile bool memory_usage_trace_enabled = false;
-
-
-void zpl_wait_for_usage_trace_enabled(void)
-{
-	k_mutex_lock(&conf_lock, K_FOREVER);
-	if (!IS_ENABLED(CONFIG_ZPL_MEMORY_USAGE_TRACE) && !memory_usage_trace_enabled) {
-		k_condvar_wait(&conf_condvar, &conf_lock, K_FOREVER);
+#define ZPL_WAIT_FOR_CONF_DEF(name, config)                             \
+	void zpl_wait_for_##name(void)                                          \
+	{                                                                       \
+		k_mutex_lock(&zpl_##name_lock, K_FOREVER);                            \
+		if (!IS_ENABLED(config) && !zpl_##name_flag) {                        \
+			k_condvar_wait(&zpl_##name_condvar, &zpl_##name_lock, K_FOREVER);   \
+		}                                                                     \
+		k_mutex_unlock(&zpl_##name_lock);                                     \
 	}
-	k_mutex_unlock(&conf_lock);
-}
 
-void zpl_memory_usage_trace_change_state(bool state)
-{
-	k_mutex_lock(&conf_lock, K_FOREVER);
-	memory_usage_trace_enabled = state;
-	if (memory_usage_trace_enabled) {
-		k_condvar_signal(&conf_condvar);
+#define ZPL_CHECK_IF_CONF_DEF(name, config)                             \
+	bool zpl_check_if_conf_##name(void)                                     \
+	{                                                                       \
+		return IS_ENABLED(config) || zpl_##name_flag;                         \
 	}
-	k_mutex_unlock(&conf_lock);
-}
 
-static int memory_usage_trace_enable(const struct shell *sh, size_t argc, char **argv)
-{
-	zpl_memory_usage_trace_change_state(true);
-	return 0;
-}
+#define ZPL_CONF_VARIABLES(name)         \
+	K_MUTEX_DEFINE(zpl_##name_lock);       \
+	K_CONDVAR_DEFINE(zpl_##name_condvar);  \
+	volatile bool zpl_##name_flag = false;
 
-static int memory_usage_trace_disable(const struct shell *sh, size_t argc, char **argv)
-{
-	zpl_memory_usage_trace_change_state(false);
-	return 0;
-}
+#define ZPL_CONF_CHANGE_STATE_DEF(name)       \
+	void zpl_change_state_##name(bool state)      \
+	{                                             \
+		k_mutex_lock(&zpl_##name_lock, K_FOREVER);  \
+		zpl_##name_flag = state;                    \
+		if (zpl_##name_flag) {                      \
+			k_condvar_signal(&zpl_##name_condvar);    \
+		}                                           \
+		k_mutex_unlock(&zpl_##name_lock);           \
+	}
 
-SHELL_STATIC_SUBCMD_SET_CREATE(sub_memory_usage_trace,
-        SHELL_CMD(enable, NULL, "Memory usage trace - enable", memory_usage_trace_enable),
-        SHELL_CMD(disable, NULL, "Memory usage trace - enable", memory_usage_trace_disable),
-        SHELL_SUBCMD_SET_END
-);
+#define ZPL_CONF_SHELL_DEF(name)                                             \
+	static int enable_##name(const struct shell *sh, size_t argc, char **argv)   \
+	{                                                                            \
+		zpl_change_state_##name(true);                                             \
+		return 0;                                                                  \
+	}                                                                            \
+	static int disable_##name(const struct shell *sh, size_t argc, char **argv)  \
+	{                                                                            \
+		zpl_change_state_##name(false);                                            \
+		return 0;                                                                  \
+	}                                                                            \
+	SHELL_STATIC_SUBCMD_SET_CREATE(sub_##name,                                   \
+	        SHELL_CMD(enable, NULL, #name" - enable", enable_##name),             \
+	        SHELL_CMD(disable, NULL, #name" - disable", disable_##name),           \
+	        SHELL_SUBCMD_SET_END                                                 \
+	);                                                                           \
+	SHELL_CMD_REGISTER(name, &sub_##name, #name, NULL);
 
-SHELL_CMD_REGISTER(mem_usage_trace, &sub_memory_usage_trace, "Memory usage trace", NULL);
+#define ZPL_CONF_UART_DEF(name, config)   \
+	ZPL_CONF_VARIABLES(name)                \
+	ZPL_WAIT_FOR_CONF_DEF(name, config)     \
+	ZPL_CONF_CHANGE_STATE_DEF(name)         \
+	ZPL_CONF_SHELL_DEF(name)
+
+
+/* Config definitions */
+ZPL_CONF_UART_DEF(mem_usage_trace, CONFIG_ZPL_MEMORY_USAGE_TRACE)
+ZPL_CHECK_IF_CONF_DEF(mem_usage_trace, CONFIG_ZPL_MEMORY_USAGE_TRACE)
