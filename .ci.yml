@@ -52,4 +52,4 @@ Run Lint:
     - west zephyr-export
 
     - excludes="-e SysbuildKconfig -e GitLint -e Identity -e ClangFormat -e BinaryFiles"
-    - ../zephyr/scripts/ci/check_compliance.py -c origin/main $excludes
+    - ../zephyr/scripts/ci/check_compliance.py -c origin/main..HEAD $excludes
