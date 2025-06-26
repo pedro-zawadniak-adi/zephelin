@@ -7,3 +7,15 @@ tests:
   zpl.lib.init.usb:
     extra_args:
       - EXTRA_CFLAGS=-DCONFIG_ZPL_TRACE_BACKEND_USB
+  zpl.lib.runtime_conf.none.on:
+    extra_args:
+      - EXTRA_CFLAGS=-DCONFIG_ZPL_TRACE_BACKEND_USB=y
+  zpl.lib.runtime_conf.none.off:
+    extra_args:
+      - EXTRA_CFLAGS=-DCONFIG_ZPL_TRACE_BACKEND_USB=n
+  zpl.lib.runtime_conf.uart.on:
+    extra_args:
+      - EXTRA_CFLAGS=-DCONFIG_ZPL_RUNTIME_CONFIG_UART=y -DCONFIG_ZPL_TRACE_BACKEND_USB=y
+  zpl.lib.runtime_conf.uart.off:
+    extra_args:
+      - EXTRA_CFLAGS=-DCONFIG_ZPL_RUNTIME_CONFIG_UART=y -DCONFIG_ZPL_TRACE_BACKEND_USB=n

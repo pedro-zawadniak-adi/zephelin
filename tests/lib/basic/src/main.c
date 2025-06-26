@@ -3,6 +3,7 @@
 #include <zephyr/ztest.h>
 
 #include <zpl/lib.h>
+#include <zpl/configuration.h>
 
 #ifdef CONFIG_ZPL_TRACE_BACKEND_USB
 DEFINE_FFF_GLOBALS;
@@ -30,5 +31,10 @@ ZTEST(zpl, test_library_init_fail)
 			"zpl_init() was expected to fail");
 }
 #endif /* CONFIG_ZPL_TRACE_BACKEND_USB */
+
+ZTEST(zpl, test_runtime_check_conf)
+{
+	zassert_equal(IS_ENABLED(CONFIG_ZPL_MEMORY_USAGE_TRACE), ZPL_CHECK_IF_CONF(mem_usage_trace), "ZPL_CHECK_IF_CONF(mem_usage_trace) returned an incorrect value");
+}
 
 ZTEST_SUITE(zpl, NULL, NULL, NULL, NULL, NULL);
