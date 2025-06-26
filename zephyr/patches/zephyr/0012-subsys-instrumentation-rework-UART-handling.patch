@@ -1,7 +1,7 @@
-From ceaf6b89af451a80df09c05b626ade49a672059a Mon Sep 17 00:00:00 2001
+From 614a7f65fa2b53ea7d904dea20320a7a09b51700 Mon Sep 17 00:00:00 2001
 From: Maciej Sobkowski <msobkowski@antmicro.com>
 Date: Wed, 4 Jun 2025 13:15:24 +0200
-Subject: [PATCH 12/12] subsys: instrumentation: rework UART handling
+Subject: [PATCH 12/16] subsys: instrumentation: rework UART handling
 
 On MAX78002 EV KIT board if >1 character was transmitted (e.g. by running
 `scripts/zaru.py`) RX was getting disabled and no further commands could be
@@ -51,5 +51,5 @@ index 08ddef57e6b..af93002066b 100644
  			if (byte == '\r') {
  				_cmd_buffer[cur] = '\0';
 -- 
-2.49.0
+2.43.0
 

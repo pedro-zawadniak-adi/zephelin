@@ -13,10 +13,10 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: b64a56362d8bffbf33a3ec26b38315d9d35abac8
+      revision: d41716f63c5c86c811e06559c25a668a9beb1d5a
       import:
         name-allowlist:
-          - cmsis
+          - cmsis_6
           - hal_adi
           - hal_stm32
           - tflite-micro

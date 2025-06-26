@@ -1,7 +1,7 @@
-From ca54f9d41fd504122dd6cccd21b1c5bfecca41c1 Mon Sep 17 00:00:00 2001
+From f4f295ea22466e222fe8754e3f529ad987e9c2b3 Mon Sep 17 00:00:00 2001
 From: Gustavo Romero <gustavo.romero@linaro.org>
 Date: Thu, 27 Apr 2023 20:17:23 +0000
-Subject: [PATCH 04/12] instrumentation: Add instrumentation subsystem
+Subject: [PATCH 04/16] instrumentation: Add instrumentation subsystem
 
 This commit adds the instrumentation subsystem.
 
@@ -1624,5 +1624,5 @@ index 00000000000..08ddef57e6b
 +
 +SYS_INIT(uart_isr_init, APPLICATION, 0);
 -- 
-2.49.0
+2.43.0
 

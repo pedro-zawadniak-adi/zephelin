@@ -1,7 +1,7 @@
-From b0cd29d066ed8469f03f6351424c205ba839e13d Mon Sep 17 00:00:00 2001
+From 31eba82e428ae91bae74ea222f91609bea48f6ee Mon Sep 17 00:00:00 2001
 From: Maciej Sobkowski <msobkowski@antmicro.com>
 Date: Tue, 20 May 2025 11:54:15 +0200
-Subject: [PATCH 09/12] instumentation: enable instrumentation in C++
+Subject: [PATCH 09/16] instumentation: enable instrumentation in C++
 
 Signed-off-by: Maciej Sobkowski <msobkowski@antmicro.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Maciej Sobkowski <msobkowski@antmicro.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 104232cabe8..17a4c0db9af 100644
+index 50b33fe6608..602b59511f7 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -488,6 +488,7 @@ zephyr_link_libraries_ifndef(CONFIG_NATIVE_LIBRARY
+@@ -505,6 +505,7 @@ zephyr_link_libraries_ifndef(CONFIG_NATIVE_LIBRARY
  
  # @Intent: Enable function instrumentation injection at compile time
  zephyr_compile_options($<$<COMPILE_LANGUAGE:C>:$<TARGET_PROPERTY:compiler,func_instrumentation>>)
@@ -21,5 +21,5 @@ index 104232cabe8..17a4c0db9af 100644
  # Allow the user to inject options when calling cmake, e.g.
  # 'cmake -DEXTRA_CFLAGS="-Werror -Wno-deprecated-declarations" ..'
 -- 
-2.49.0
+2.43.0
 

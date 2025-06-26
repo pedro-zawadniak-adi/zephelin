@@ -1,7 +1,7 @@
-From 52e9383f423ecca3d3485128d8e9adfa56d2e334 Mon Sep 17 00:00:00 2001
+From 72b45af8e8551dd8244ce01f711e9c4a4478db8c Mon Sep 17 00:00:00 2001
 From: Kevin Townsend <kevin.townsend@linaro.org>
 Date: Wed, 26 Apr 2023 16:33:57 +0000
-Subject: [PATCH 03/12] toolchain: gcc: Add __no_instrumentation__ definition
+Subject: [PATCH 03/16] toolchain: gcc: Add __no_instrumentation__ definition
 
 Adds a new '__no_instrumentation__' preprocessor definition for GCC,
 mapping it to '__attribute__((__no_instrument_function__))'.
@@ -17,10 +17,10 @@ Signed-off-by: Gustavo Romero <gustavo.romero@linaro.org>
  1 file changed, 6 insertions(+)
 
 diff --git a/include/zephyr/toolchain/gcc.h b/include/zephyr/toolchain/gcc.h
-index 3d63cda20c0..38c929cdcab 100644
+index 4d3d85858d3..51e02238b3b 100644
 --- a/include/zephyr/toolchain/gcc.h
 +++ b/include/zephyr/toolchain/gcc.h
-@@ -679,6 +679,12 @@ do {                                                                    \
+@@ -700,6 +700,12 @@ do {                                                                    \
  #define FUNC_NO_STACK_PROTECTOR
  #endif
  
@@ -34,5 +34,5 @@ index 3d63cda20c0..38c929cdcab 100644
  
  #define TOOLCHAIN_WARNING_ADDRESS_OF_PACKED_MEMBER "-Waddress-of-packed-member"
 -- 
-2.49.0
+2.43.0
 

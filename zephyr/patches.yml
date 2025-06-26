@@ -1,96 +1,90 @@
 patches:
-  - path: zephyr/0001-subsys-tracing-select-backend-name-in-Kconfig.patch
-    sha256sum: 3a8448a715d89630b86ef10eaba0bd257e21fa32232bf5c4b4b4f3b5e1857bf7
-    module: zephyr
-    author: Filip Kokosinski
-    email: fkokosinski@antmicro.com
-    date: 2025-05-30
   - path: zephyr/0001-arch-arm-aarch32-Refresh-CORTEX_M_DWT-in-menuconfig.patch
-    sha256sum: c115931a28ec60588143284cf392b50b6250b9269216effa963e6963cda6aadf
+    sha256sum: 6f468cb12d55f53442529404887bca76aa91556e074e258b403850ca017a2629
     module: zephyr
     author: Gustavo Romero
     email: gustavo.romero@linaro.org
     date: 2025-06-04
   - path: zephyr/0002-cmake-compiler-Add-func_instrumentation-flag.patch
-    sha256sum: aa5df947b10199ee479ec3cbb58acdcc0053c1ec4d66f66ee52652977c65830f
+    sha256sum: ea4eca910f4d77b023fbb9b4bdca21a0ce55e2f6d4cd39b5caeca4e96a92e173
     module: zephyr
     author: Kevin Townsend
     email: kevin.townsend@linaro.org
     date: 2025-06-04
   - path: zephyr/0003-toolchain-gcc-Add-__no_instrumentation__-definition.patch
-    sha256sum: d61e6bc2594c40af42f06c373e6d2ad3024620ba462005c2657cb52aaf276cd7
+    sha256sum: 1e1a5f1d1f62a6ad26e8618a1fdf4eca60ecb799587aa03dd3090d6bf32ab396
     module: zephyr
     author: Kevin Townsend
     email: kevin.townsend@linaro.org
     date: 2025-06-04
   - path: zephyr/0004-instrumentation-Add-instrumentation-subsystem.patch
-    sha256sum: 724ae96b6ce83fb2e79e80f8a5b0513325fc1fed06eeeae195a36e42cc6115b0
+    sha256sum: ec4b5db23f08972a88dc8b78c52ffa57a4c32ec3c46a9a80af1062332501842f
     module: zephyr
     author: Gustavo Romero
     email: gustavo.romero@linaro.org
     date: 2025-06-04
   - path: zephyr/0005-cmake-emu-Allow-QEMU-to-serve-serial-on-a-TCP-IP-por.patch
-    sha256sum: 5daa5e2382566d6c7e0dad0c5399bf47d20751ec7ace8da524fccba78557e5d1
+    sha256sum: 22bda7c8fbc2600033d89782e2b138830c1890236849e980a7ecd7234c5ced39
     module: zephyr
     author: Gustavo Romero
     email: gustavo.romero@linaro.org
     date: 2025-06-04
   - path: zephyr/0006-scripts-zaru-Add-instrumentation-CLI-tool.patch
-    sha256sum: 68fc979778a6a1ff6650fe9ba618a87cf6b52fc0e97b1df4b06812bca5c695c7
+    sha256sum: 711886bc1c3ca144cbb120cd1f5eac4b204e2a8ef80c9eeed0eb67b1e5bbf47a
     module: zephyr
     author: Gustavo Romero
     email: gustavo.romero@linaro.org
     date: 2025-06-04
   - path: zephyr/0007-samples-instrumentation-Add-a-sample-for-instrumenta.patch
-    sha256sum: 21d87d9f511c196a7dfd2e8029ec0fe41a9cdc01dfc70d2052e228f3bdc66d4e
+    sha256sum: 97d6f115f6f3a09bf0e38e0ff86c194d68f8185f0a020a0adcd36613f3216637
     module: zephyr
     author: Gustavo Romero
     email: gustavo.romero@linaro.org
     date: 2025-06-04
   - path: zephyr/0008-Revert-kernel-sched-Optimize-sleeping-function.patch
-    sha256sum: 861064d7e15f634c8e75d3acee3cef922060cf7900a1ff27ce2948f82197a6fa
+    sha256sum: 3222ff7736ba1483e8862787d3eb458367cb532a1677e54fcc43113801191bc0
     module: zephyr
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-04
   - path: zephyr/0009-instumentation-enable-instrumentation-in-C.patch
-    sha256sum: 6f4eefb76a7d88f893a4b79c23fe0db3c594df26d2d579ff684c4ce38e2f7e8b
+    sha256sum: 32ee7e878489691f465775a62cc08c15663e62ccc868a930560f6d179828ecdf
     module: zephyr
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-04
   - path: zephyr/0010-scripts-zaru.py-add-flag-for-demangling-C-symbols.patch
-    sha256sum: b8c5e6b566a12aa71b46e178200df74d1b851bc5fe595664d30037ebdb4952d9
+    sha256sum: 7ce80c6b7d1adcb7fd66e219d2f287fa5447157c34d839a1a1456887a8378303
     module: zephyr
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-04
   - path: zephyr/0011-instrumentation-increase-trace-buffer-upper-limit-to.patch
-    sha256sum: 415db4a190acc85fbd7aa34b60bd873489541379a5a4290707b8ac6b9ef318a1
+    sha256sum: 451571839f31a0088a4f36bbe0c0bd3927d9db6a5ea5117d139b8c35316b61df
     module: zephyr
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-04
   - path: zephyr/0012-subsys-instrumentation-rework-UART-handling.patch
-    sha256sum: 63798a62458b7152d851036ab07fe7cf97dfb5f4fc6d65852281d8e7f6eb458f
+    sha256sum: 7e6726c0f6e669dbd7872c7bf0a327b341353c670b1a61801e3e30020b2d0f96
     module: zephyr
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-04
-  - path: zephyr/0001-boards-adi-max78002evkit-add-renode-renode-robot-sup.patch
-    sha256sum: 9017c5673e37cef3bf8e0a7e227b3ca5d018ecd32212297d96a01cae321815ba
+  - path: zephyr/0013-boards-adi-max78002evkit-add-renode-renode-robot-sup.patch
+    sha256sum: 2e984361a979019cf360a2d173d09dcbbb770e8676dd313196af69f5d02936bf
     module: zephyr
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-06
-  - path: zephyr/0002-boards-adi-max32690fthr-add-renode-renode-robot-supp.patch
-    sha256sum: baac76797fb309ea3b08347da996484be1e93a3de7fb33a43177a45af9be37dd
+  - path: zephyr/0014-boards-adi-max32690fthr-add-renode-renode-robot-supp.patch
+    sha256sum: 872d85c7d89ff0c87c98690ee828441951a66ccc08a62c5bb51477d3b0989a81
     module: zephyr
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-06
-  - path: zephyr/0003-boards-st-stm32f429i_disc1-renode-renode-robot-suppo.patch
-    sha256sum: b159bfcd0bc93e19d42431e4e0613f61822676d8fcb16ed649f7188321ed8cdd
+  - path: zephyr/0015-boards-st-stm32f429i_disc1-renode-renode-robot-suppo.patch
+    sha256sum: ed02f3a222039fd4d3c06a0cbb6e806d79b432680e67ae4f97ac90bdf3c2e5a9
     module: zephyr
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
@@ -101,18 +95,12 @@ patches:
     author: Maciej Torhan
     email: mtorhan@antmicro.com
     date: 2025-06-04
-  - path: zephyr/0001-Mute-Idle-traces.patch
-    sha256sum: da8b5d218329e8d951e85adc223c650b9eb2a9f5518a6c937b2911461fa15957
+  - path: zephyr/0016-Mute-Idle-traces.patch
+    sha256sum: 7f9cdba74130bc88a7c8c0ced49cb0432bd4c6dcaf448d1c390a35308dc580b5
     module: zephyr
     author: Krzysztof Sychla
     email: ksychla@antmicro.com
     date: 2025-06-12
-  - path: zephyr/0001-subsys-tracing-add-names-to-Kconfig-choice-symbols.patch
-    sha256sum: 551b5ba8284bc2fa5397c25f50af6c1475d4916adc54430aa061a4b7e748ce7d
-    module: zephyr
-    author: Filip Kokosinski
-    email: fkokosinski@antmicro.com
-    date: 2025-06-09
   - path: zephyr/0001-add-tvm-files.patch
     sha256sum: 8eaf2d1451fd91794067459ef4aede8e55310ee81282902c30d24f8f57de9faa
     module: zephyr

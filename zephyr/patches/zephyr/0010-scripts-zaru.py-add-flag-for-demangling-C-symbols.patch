@@ -1,7 +1,7 @@
-From 7f2c21d2916527ea4d714760c75c51cce1d5efe4 Mon Sep 17 00:00:00 2001
+From 56b554f8ca4d9a7672359706120a8f7db3bfe928 Mon Sep 17 00:00:00 2001
 From: Maciej Sobkowski <msobkowski@antmicro.com>
 Date: Wed, 21 May 2025 13:21:01 +0200
-Subject: [PATCH 10/12] scripts/zaru.py: add flag for demangling C++ symbols
+Subject: [PATCH 10/16] scripts/zaru.py: add flag for demangling C++ symbols
 
 Signed-off-by: Maciej Sobkowski <msobkowski@antmicro.com>
 ---
@@ -107,5 +107,5 @@ index 9b21bb4c7fc..a6411dced95 100755
      trace_parser.set_defaults(func=trace)
  
 -- 
-2.49.0
+2.43.0
 

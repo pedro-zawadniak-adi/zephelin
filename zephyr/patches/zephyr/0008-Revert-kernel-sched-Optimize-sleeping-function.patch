@@ -1,7 +1,7 @@
-From 52707c976da2dbd8e58734c01cfd2f0f398783b9 Mon Sep 17 00:00:00 2001
+From 7591b936dec82d38a2e77507f2968fd2bda7af23 Mon Sep 17 00:00:00 2001
 From: Maciej Sobkowski <msobkowski@antmicro.com>
 Date: Mon, 19 May 2025 16:46:24 +0200
-Subject: [PATCH 08/12] Revert "kernel: sched: Optimize sleeping function"
+Subject: [PATCH 08/16] Revert "kernel: sched: Optimize sleeping function"
 
 This reverts commit 07f8c46e37c95c74c860bfd4c1d8c00e86c4ad05.
 
@@ -90,5 +90,5 @@ index f698a0779e5..0336609d7c6 100644
  			if (is_first) {
  				sys_clock_set_timeout(next_timeout(elapsed()), false);
 -- 
-2.49.0
+2.43.0
 

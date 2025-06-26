@@ -1,7 +1,7 @@
-From f9a3b7d0383b05c173839d7a4fc7b7b6486a279f Mon Sep 17 00:00:00 2001
+From 48512237d274b65cd64ec308e9642bcb81946312 Mon Sep 17 00:00:00 2001
 From: Gustavo Romero <gustavo.romero@linaro.org>
 Date: Thu, 27 Apr 2023 20:11:03 +0000
-Subject: [PATCH 06/12] scripts: zaru: Add instrumentation CLI tool
+Subject: [PATCH 06/16] scripts: zaru: Add instrumentation CLI tool
 
 This commit adds 'zaru', a CLI tool for the instrumentation subsystem.
 
@@ -1185,5 +1185,5 @@ index 00000000000..b499efdc0c6
 +	};
 +};
 -- 
-2.49.0
+2.43.0
 

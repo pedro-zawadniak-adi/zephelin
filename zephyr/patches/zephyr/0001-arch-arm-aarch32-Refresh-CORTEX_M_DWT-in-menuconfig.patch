@@ -1,7 +1,7 @@
-From 50c6a667d918bae41c4dc247cd8713288f83cc34 Mon Sep 17 00:00:00 2001
+From 918f1a4e3330e02f3906f954cfb86648b4d5f481 Mon Sep 17 00:00:00 2001
 From: Gustavo Romero <gustavo.romero@linaro.org>
 Date: Tue, 11 Jul 2023 23:00:44 +0000
-Subject: [PATCH 01/12] arch: arm: aarch32: Refresh CORTEX_M_DWT in menuconfig
+Subject: [PATCH 01/16] arch: arm: aarch32: Refresh CORTEX_M_DWT in menuconfig
 
 Currently, CORTEX_M_DWT option does not refresh its value when
 TIMING_FUNCTIONS, on which it depends, is selected via menuconfig.
@@ -30,10 +30,10 @@ Signed-off-by: Gustavo Romero <gustavo.romero@linaro.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/core/cortex_m/Kconfig b/arch/arm/core/cortex_m/Kconfig
-index c018574429a..404121d41c0 100644
+index eb54301c30c..07e3174887f 100644
 --- a/arch/arm/core/cortex_m/Kconfig
 +++ b/arch/arm/core/cortex_m/Kconfig
-@@ -367,7 +367,7 @@ config SW_VECTOR_RELAY_CLIENT
+@@ -422,7 +422,7 @@ config SW_VECTOR_RELAY_CLIENT
  	  initialization.
  
  config CORTEX_M_DWT
@@ -43,5 +43,5 @@ index c018574429a..404121d41c0 100644
  	default y if TIMING_FUNCTIONS
  	help
 -- 
-2.49.0
+2.43.0
 

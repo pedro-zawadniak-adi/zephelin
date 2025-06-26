@@ -1,7 +1,8 @@
-From 419143322cc2b228ee0215750ec63e21fbcac35f Mon Sep 17 00:00:00 2001
+From 4fe97d06d2bc7670c80a507a9c4deffa851eec25 Mon Sep 17 00:00:00 2001
 From: Maciej Sobkowski <msobkowski@antmicro.com>
 Date: Fri, 6 Jun 2025 14:40:39 +0200
-Subject: [PATCH 3/3] boards: st: stm32f429i_disc1: renode/renode-robot support
+Subject: [PATCH 15/16] boards: st: stm32f429i_disc1: renode/renode-robot
+ support
 
 Signed-off-by: Maciej Sobkowski <msobkowski@antmicro.com>
 ---
@@ -12,7 +13,7 @@ Signed-off-by: Maciej Sobkowski <msobkowski@antmicro.com>
  create mode 100644 boards/st/stm32f429i_disc1/support/stm32f4_discovery.resc
 
 diff --git a/boards/st/stm32f429i_disc1/board.cmake b/boards/st/stm32f429i_disc1/board.cmake
-index 9f872edd546..f30ebe01709 100644
+index 836afa988e3..81888bfa5ed 100644
 --- a/boards/st/stm32f429i_disc1/board.cmake
 +++ b/boards/st/stm32f429i_disc1/board.cmake
 @@ -1,5 +1,14 @@
@@ -47,7 +48,7 @@ index 10fbd8485d4..f160f837986 100644
 +    resc: boards/st/stm32f429i_disc1/support/stm32f4_discovery.resc
 diff --git a/boards/st/stm32f429i_disc1/support/stm32f4_discovery.resc b/boards/st/stm32f429i_disc1/support/stm32f4_discovery.resc
 new file mode 100644
-index 00000000000..8351f9716cc
+index 00000000000..e7dc1e0c9ac
 --- /dev/null
 +++ b/boards/st/stm32f429i_disc1/support/stm32f4_discovery.resc
 @@ -0,0 +1,24 @@
@@ -76,5 +77,5 @@ index 00000000000..8351f9716cc
 +
 +runMacro $reset
 -- 
-2.49.0
+2.43.0
 

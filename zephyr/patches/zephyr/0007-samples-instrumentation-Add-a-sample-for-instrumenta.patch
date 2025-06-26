@@ -1,7 +1,7 @@
-From bbaa1dfc87c16ccb57491269c2fccc4e13d8b0ce Mon Sep 17 00:00:00 2001
+From 2a805c4a9f9237613cd7ccdb38c38f326d6e4db5 Mon Sep 17 00:00:00 2001
 From: Gustavo Romero <gustavo.romero@linaro.org>
 Date: Thu, 27 Apr 2023 19:04:38 +0000
-Subject: [PATCH 07/12] samples: instrumentation: Add a sample for
+Subject: [PATCH 07/16] samples: instrumentation: Add a sample for
  instrumentation subsys
 
 Adds a sample to show the tracing and profiling features when the
@@ -269,5 +269,5 @@ index 00000000000..340f2e5a198
 +	get_sem_and_exec_function(&main_sem, &thread_a_sem, loop_1);
 +}
 -- 
-2.49.0
+2.43.0
 

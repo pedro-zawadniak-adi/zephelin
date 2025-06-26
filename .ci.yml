@@ -7,13 +7,15 @@ stages:
     DEBIAN_FRONTEND: noninteractive
     CMAKE_PREFIX_PATH: /opt/toolchains
     RENODE_VERSION: "renode_1.15.3+20250611gitbf88af3a1_amd64.deb"
-  image: "zephyrprojectrtos/ci:v0.27.5"
+  image: "zephyrprojectrtos/ci:v0.28.2"
   before_script:
     - wget "https://dl.antmicro.com/projects/renode/builds/${RENODE_VERSION}" -O renode.deb
     - dpkg -i renode.deb
     - apt update -qq
     - apt install -yqq python3-bt2 xxd git-lfs gdb-multiarch
     - git lfs pull
+    # make bt2 visible in the venv that comes with the container
+    - cp -r /usr/lib/python3/dist-packages/bt2 /opt/python/venv/lib/**/site-packages/
 
 Run Tuttest:
   extends: .test_template
@@ -44,7 +46,7 @@ Run Twister:
 
 Run Lint:
   stage: Test
-  image: "zephyrprojectrtos/ci:v0.27.5"
+  image: "zephyrprojectrtos/ci:v0.28.2"
   script:
     - west init -l .
     - west update
