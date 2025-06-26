@@ -108,6 +108,12 @@ patches:
     author: Maciej Torhan
     email: mtorhan@antmicro.com
     date: 2025-06-12
+  - path: tvm/0006-fix-nop-duplicating-operations.patch
+    sha256sum: fc692fa46ff15bc7f878ab412d59812abd19d99cce0207aeca4711d7a3852e65
+    module: tvm
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-06-26
   - path: dlpack/0001-add-zephyr-files.patch
     sha256sum: d05aa2ae6654be3bc33d0c03e3dfaa4ef56c3627e627788a13a52f5a2f7bee33
     module: dlpack
