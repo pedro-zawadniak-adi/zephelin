@@ -1,3 +1,10 @@
+typealias floating_point {
+    exp_dig = 8;
+    mant_dig = 24;
+    byte_order = le;
+    align = 8;
+} := float32;
+
 event {
 	name = zpl_tflm_begin_event;
 	id = 0xA0;
@@ -55,5 +62,13 @@ event {
 		uint32_t memory_addr;
 		uint32_t used;
 		uint32_t unused;
+	};
+};
+
+event {
+	name = zpl_cpu_load_event;
+	id = 0xC0;
+	fields := struct {
+		uint16_t cpu_load;
 	};
 };
