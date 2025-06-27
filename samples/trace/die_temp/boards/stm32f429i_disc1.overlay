@@ -1,0 +1,17 @@
+/ {
+	chosen {
+		zephyr,tracing-uart = &usart1;
+	};
+	aliases {
+		die-temp0 = &die_temp;
+	};
+};
+
+&die_temp {
+	status="okay";
+};
+
+&adc1 {
+	status="okay";
+	st,adc-prescaler=<0x4>;
+};
