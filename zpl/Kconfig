@@ -91,7 +91,7 @@ config ZPL_MEMORY_PROFILING
 	  Say 'Y' if you want to enable support for the Memory Profiling.
 
 config ZPL_MEMORY_PROFILING_INTERVAL
-	int "Memory profiling interval in milli seconds"
+	int "Memory profiling interval in milliseconds"
 	default 1000
 	depends on ZPL_MEMORY_PROFILING
 
@@ -209,7 +209,7 @@ config ZPL_CPU_LOAD_PROFILING
 	  Say 'Y' if you want to enable support for the CPU load profiling.
 
 config ZPL_CPU_LOAD_PROFILING_INTERVAL
-	int "CPU load profiling interval in milli seconds"
+	int "CPU load profiling interval in milliseconds"
 	default 1000
 	depends on ZPL_CPU_LOAD_PROFILING
 
@@ -230,3 +230,40 @@ config ZPL_CPU_LOAD_PROFILING_THREAD_DELAY
 
 config ZPL_CPU_LOAD_TRACE
 	bool "Enables CPU load traces"
+
+config ZPL_DIE_TEMP_PROFILING
+	bool "DIE temperature profiling"
+	depends on ZPL
+	depends on ADC
+	depends on SENSOR
+	select INIT_STACKS
+	help
+	  Say 'Y' if you want to enable support for the DIE temperature profiling.
+
+config ZPL_DIE_TEMP_PROFILING_SENSORS_COUNT
+	int "Number of DIE temperature sensors to use for profiling"
+	default 2
+	depends on ZPL_DIE_TEMP_PROFILING
+
+config ZPL_DIE_TEMP_PROFILING_INTERVAL
+	int "DIE temperature profiling interval in milliseconds"
+	default 1000
+	depends on ZPL_DIE_TEMP_PROFILING
+
+config ZPL_DIE_TEMP_PROFILING_THREAD_STACK_SIZE
+	int "DIE temperature profiling thread stack size in bytes"
+	default 512
+	depends on ZPL_DIE_TEMP_PROFILING
+
+config ZPL_DIE_TEMP_PROFILING_THREAD_PRIORITY
+	int "DIE temperature profiling thread priority"
+	default 5
+	depends on ZPL_DIE_TEMP_PROFILING
+
+config ZPL_DIE_TEMP_PROFILING_THREAD_DELAY
+	int "DIE temperature profiling thread delay"
+	default 0
+	depends on ZPL_DIE_TEMP_PROFILING
+
+config ZPL_DIE_TEMP_TRACE
+	bool "Enables DIE temperature traces"

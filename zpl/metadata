@@ -72,3 +72,11 @@ event {
 		uint16_t cpu_load;
 	};
 };
+
+event {
+	name = zpl_die_temp_event;
+	id = 0xC1;
+	fields := struct {
+		float32 die_temp[2];
+	};
+};
