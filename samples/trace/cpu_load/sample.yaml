@@ -1,0 +1,25 @@
+sample:
+  name: simple
+common:
+  tags: profiling
+  harness: console
+  harness_config:
+    type: one_line
+    regex:
+      - "zpl_cpu_load_event: cpu_load=[0-9]+\\.[0-9]+"
+tests:
+  sample.trace.cpu_load.plaintext:
+    tags: profiling
+  sample.trace.cpu_load.plaintext.robot:
+    tags: profiling
+    harness: robot
+    harness_config:
+      robot_testsuite: cpu_load_plaintext.robot
+  sample.trace.cpu_load.ctf.robot:
+    tags: profiling
+    extra_configs:
+      - CONFIG_TRACING_BUFFER_SIZE=4096
+      - CONFIG_ZPL_TRACE_FORMAT_CTF=y
+    harness: robot
+    harness_config:
+      robot_testsuite: cpu_load_ctf.robot
