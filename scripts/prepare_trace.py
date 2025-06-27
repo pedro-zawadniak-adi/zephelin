@@ -10,20 +10,27 @@ import argparse
 import json
 import os
 import sys
-from io import StringIO
 from pathlib import Path
 
-from ctf2tef import EventPhase, ctf_to_tef, prepare_dir
+from ctf2tef import (
+    CustomEventDefinition,
+    CustomMetadataDefinition,
+    EventPhase,
+    ctf_to_tef,
+    prepare_dir,
+)
 
 
-def tflm_name(msg):
+def layer_name(msg) -> str:
     """
-    Generates suffix for TFLM event name.
+    Generates suffix for model event name.
     """
     fields = msg.event.payload_field
     if not fields:
         return ""
     name = str(fields.get("tag", ""))
+    if name.startswith("tvmgen_default_"):
+        name = name[15:]
     if "subgraph_idx" in fields:
         name += f"_{fields['subgraph_idx']}"
     if "op_idx" in fields:
@@ -31,34 +38,62 @@ def tflm_name(msg):
     return name
 
 
-# The dictionary of custom events, where the key is a name of a resulting event,
-# and values are tuples of received beginning and end events
-# and the function extending the event name based on the arguments.
-# If the events contain tag in the payload, it will be appended
-# to the resulting event name.
-CUSTOM_EVENTS = {
-    "TFLM::": ("zpl_tflm_begin_event", "zpl_tflm_end_event", tflm_name),
-}
+# The list of custom events definitions
+CUSTOM_EVENTS = [
+    CustomEventDefinition(
+        "MODEL::",
+        "zpl_tflm_begin_event",
+        "zpl_tflm_end_event",
+        layer_name,
+        lambda _: {"runtime": "TFLite Micro"},
+    ),
+    CustomEventDefinition(
+        "MODEL::",
+        "zpl_tvm_begin_event",
+        "zpl_tvm_end_event",
+        layer_name,
+        lambda _: {"runtime": "microTVM"},
+    ),
+]
 
 
-def memory_name(msg):
+def memory_data(msg) -> dict:
     """
-    Generates suffix for Memory event name.
+    Returns additional arguments with memory ragion name.
     """
     if not (args := msg.event.payload_field):
-        return ""
+        return {}
     try:
         # Get enum label and remove ZPL_ prefix
-        return args["memory_region"].labels[0][4:]
+        # This will override "memory_region"
+        return {"memory_region": args["memory_region"].labels[0][4:]}
     except Exception:
-        return ""
+        return {}
 
 
 # The dictionary of custom metadata events, where the key is CTF event name
-# and values tuples of new event name and function producing name suffix.
+# and value is a definition of new metadata event.
 CUSTOM_METADATA = {
-    "zpl_memory_event": ("MEMORY::", memory_name),
+    "zpl_memory_event": CustomMetadataDefinition("MEMORY", None, memory_data),
 }
+
+
+def add_model_metadata(trace: list, data: dict):
+    """
+    Adds model metadata to the trace.
+    """
+    trace.insert(
+        0,
+        {
+            "name": "MODEL",
+            "cat": "zephyr",
+            "ph": EventPhase.METADATA.value,
+            "pid": 0,
+            "tid": 0,
+            "ts": 0,
+            "args": data,
+        },
+    )
 
 
 if __name__ == "__main__":
@@ -89,32 +124,30 @@ if __name__ == "__main__":
     parser.add_argument(
         "--tflm-model-path",
         type=Path,
-        help="Path to the required model, extracted information will be appedened "
+        help="Path to the TFLM model, extracted information will be appedened "
+        "to the final trace as a metadata",
+        default=None,
+    )
+    parser.add_argument(
+        "--tvm-model-path",
+        type=Path,
+        help="Path to the TVM graph file, extracted information will be appedened "
         "to the final trace as a metadata",
         default=None,
     )
     args = parser.parse_args(sys.argv[1:])
 
-    tef_trace_io = StringIO()
     with prepare_dir(args.ctf_trace, args.zephyr_base) as tmp_dir:
         tef_trace = ctf_to_tef(str(tmp_dir), False, CUSTOM_METADATA, CUSTOM_EVENTS)
 
     if args.tflm_model_path is not None:
         from extract_tflite_model_data import extract_model_data
 
-        tflm_model_data = extract_model_data(args.tflm_model_path)
-        tef_trace.insert(
-            0,
-            {
-                "name": "TFLM::MODEL",
-                "cat": "zephyr",
-                "ph": EventPhase.METADATA.value,
-                "pid": 0,
-                "tid": 0,
-                "ts": 0,
-                "args": tflm_model_data,
-            },
-        )
+        add_model_metadata(tef_trace, extract_model_data(args.tflm_model_path))
+    if args.tvm_model_path is not None:
+        from extract_tvm_model_data import extract_model_data
+
+        add_model_metadata(tef_trace, extract_model_data(args.tvm_model_path))
 
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)

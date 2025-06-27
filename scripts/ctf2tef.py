@@ -9,12 +9,14 @@ import argparse
 import json
 import os
 import sys
+from collections import defaultdict
 from contextlib import contextmanager
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from shutil import copy2
 from tempfile import TemporaryDirectory
-from typing import Any
+from typing import Any, Callable
 
 import bt2  # From the babeltrace2 package.
 
@@ -55,6 +57,52 @@ class EventPhase(Enum):
     CLOCK_SYNC = "c"
     CONTEXT_BEGIN = "("
     CONTEXT_END = ")"
+
+
+@dataclass
+class CustomEventDefinition:
+    """
+    Definition of custom event.
+
+    Attributes
+    ----------
+    new_name : str
+        The name of newly created event.
+    enter_event_name : str
+        The name of CTF event marking the start of new event.
+    exit_event_name : str
+        The name of CTF event marking the end of new event.
+    suffix_func : Callable[[bt2._EventMessageConst], str] | None
+        Optional function returning suffix of the new event based on its data.
+    additional_arg_func : Callable[[bt2._EventMessageConst], str] | None
+        Optional function returning additional arguments for the new event based on its data.
+    """
+
+    new_name: str
+    enter_event_name: str
+    exit_event_name: str
+    suffix_func: Callable[[bt2._EventMessageConst], str] | None
+    additional_arg_func: Callable[[bt2._EventMessageConst], str] | None
+
+
+@dataclass
+class CustomMetadataDefinition:
+    """
+    Definition of custom metadata event.
+
+    Attributes
+    ----------
+    new_name : str
+        The name of newly created event.
+    suffix_func : Callable[[bt2._EventMessageConst], str] | None
+        Optional function returning suffix of the new event based on its data.
+    additional_arg_func : Callable[[bt2._EventMessageConst], str] | None
+        Optional function returning additional arguments for the new event based on its data.
+    """
+
+    new_name: str
+    suffix_func: Callable[[bt2._EventMessageConst], str] | None
+    additional_arg_func: Callable[[bt2._EventMessageConst], str] | None
 
 
 def extract_us(msg: bt2._EventMessageConst) -> float:
@@ -122,6 +170,7 @@ def emit_event(
     phase: EventPhase,
     shift: float = 0,
     skip_args: bool = False,
+    additional_args: dict | None = None,
 ):
     """
     Prints the event in TEF format.
@@ -140,6 +189,8 @@ def emit_event(
         The shift added to a timestamp.
     skip_args : bool
         Whether arguments should be skipped.
+    additional_args : dict | None
+        Additional data appended to "args".
     """
     if name == "named_event":
         name = str(msg.event.payload_field.get("name", name))
@@ -152,7 +203,10 @@ def emit_event(
         "tid": tid,
     } | (
         {
-            "args": convert_from_bt2(msg.event.payload_field),
+            "args": {
+                **convert_from_bt2(msg.event.payload_field),
+                **(additional_args if additional_args else {}),
+            }
         }
         if not skip_args and msg.event.payload_field
         else {}
@@ -162,8 +216,8 @@ def emit_event(
 def ctf_to_tef(
     path: str,
     skip_args: bool = False,
-    custom_metadata: dict[str, str] | None = None,
-    custom_events: dict[str, tuple[str, str]] | None = None,
+    custom_metadata: dict[str, CustomMetadataDefinition] | None = None,
+    custom_events: list[CustomEventDefinition] | None = None,
 ) -> list:
     """
     Converts CTF trace to the JSON in TEF format.
@@ -174,10 +228,10 @@ def ctf_to_tef(
         Path to the file with trace in CTF.
     skip_args : bool
         Whether the arguments of events should be ignored.
-    custom_metadata : dict[str, str] | None
+    custom_metadata : list[CustomMetadataDefinition] | None
         Dictionary mapping CTF event to the TEF metadata.
-    custom_events : dict[str, tuple[str, str]] | None
-        Dictionary mapping the beginning and the end represented by CTF events
+    custom_events : dict[str, CustomEventDefinition] | None
+        List with mapping of the beginning and the end represented by CTF events
         to a new TEF event.
 
     Returns
@@ -188,19 +242,20 @@ def ctf_to_tef(
     if custom_metadata is None:
         custom_metadata = {}
     if custom_events is None:
-        custom_events = {}
+        custom_events = []
 
     # Prepare custom events mapping
-    custom_event_begin = {}
-    custom_event_end = {}
-    custom_event_func = {}
-    for [begin, end, _] in custom_events.values():
-        custom_event_begin[begin] = []
-        custom_event_end[end] = []
-    for custom, [begin, end, func] in custom_events.items():
-        custom_event_begin[begin].append(custom)
-        custom_event_end[end].append(custom)
-        custom_event_func[begin] = custom_event_func[end] = func
+    custom_event_begin = defaultdict(list)
+    custom_event_end = defaultdict(list)
+    custom_event_name_func = {}
+    custom_event_args_func = {}
+    for event_def in custom_events:
+        custom_event_begin[event_def.enter_event_name].append(event_def.new_name)
+        custom_event_end[event_def.exit_event_name].append(event_def.new_name)
+        custom_event_name_func[event_def.enter_event_name] = event_def.suffix_func
+        custom_event_name_func[event_def.exit_event_name] = event_def.suffix_func
+        custom_event_args_func[event_def.enter_event_name] = event_def.additional_arg_func
+        custom_event_args_func[event_def.exit_event_name] = event_def.additional_arg_func
 
     converted = []
 
@@ -212,14 +267,15 @@ def ctf_to_tef(
             continue
         # Process custom metadata
         if msg.event.name in custom_metadata:
-            meta = custom_metadata[msg.event.name]
+            m = custom_metadata[msg.event.name]
             converted.append(
                 emit_event(
                     msg,
-                    f"{meta[0]}{meta[1](msg)}",
+                    f"{m.new_name}{m.suffix_func(msg) if m.suffix_func else ''}",
                     current_thread,
                     EventPhase.METADATA,
                     skip_args=skip_args,
+                    additional_args=m.additional_arg_func(msg) if m.additional_arg_func else {},
                 )
             )
             continue
@@ -228,10 +284,13 @@ def ctf_to_tef(
             converted.append(
                 emit_event(
                     msg,
-                    f"{custom_event_begin[msg.event.name][0]}{custom_event_func[msg.event.name](msg)}",
+                    f"{custom_event_begin[msg.event.name][0]}{custom_event_name_func[msg.event.name](msg)}",
                     current_thread,
                     EventPhase.BEGIN,
                     skip_args=skip_args,
+                    additional_args=custom_event_args_func[msg.event.name](msg)
+                    if custom_event_args_func
+                    else {},
                 )
             )
             continue
@@ -239,10 +298,13 @@ def ctf_to_tef(
             converted.append(
                 emit_event(
                     msg,
-                    f"{custom_event_end[msg.event.name][0]}{custom_event_func[msg.event.name](msg)}",
+                    f"{custom_event_end[msg.event.name][0]}{custom_event_name_func[msg.event.name](msg)}",
                     current_thread,
                     EventPhase.END,
                     skip_args=skip_args,
+                    additional_args=custom_event_args_func[msg.event.name](msg)
+                    if custom_event_args_func
+                    else {},
                 )
             )
             continue
