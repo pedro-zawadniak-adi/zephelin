@@ -1,0 +1,6 @@
+west-commands:
+  - file: west/west-zpl.py
+    commands:
+      - name: zpl-gdb-capture
+        class: ZplGdbCapture
+        help: Capture traces using GDB

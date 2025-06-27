@@ -6,6 +6,7 @@ build/
 .cache/
 *.elf
 twister-out*
+*.bin
 
 # Renode
 *.html

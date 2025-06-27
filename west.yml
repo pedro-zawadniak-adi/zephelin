@@ -1,4 +1,7 @@
 manifest:
+  self:
+    west-commands: west/west-commands.yml
+
   group-filter: [+optional]
   remotes:
     - name: zephyrproject-rtos
