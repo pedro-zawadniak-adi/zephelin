@@ -1,7 +1,7 @@
 From 715694c8e5eff235839964710c31b115baf1e532 Mon Sep 17 00:00:00 2001
 From: Krzysztof Sychla <ksychla@antmicro.com>
 Date: Thu, 12 Jun 2025 11:46:16 +0200
-Subject: [PATCH 16/16] Mute Idle traces
+Subject: [PATCH] Mute Idle traces
 
 ---
  arch/arm/core/cortex_m/cpu_idle.c       | 8 ++++----

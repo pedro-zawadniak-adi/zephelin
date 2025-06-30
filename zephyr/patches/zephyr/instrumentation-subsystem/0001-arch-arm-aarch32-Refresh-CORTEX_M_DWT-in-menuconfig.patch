@@ -1,7 +1,7 @@
-From 918f1a4e3330e02f3906f954cfb86648b4d5f481 Mon Sep 17 00:00:00 2001
+From 58d7514fd58958540e4bb753e1d3ac873b7365eb Mon Sep 17 00:00:00 2001
 From: Gustavo Romero <gustavo.romero@linaro.org>
 Date: Tue, 11 Jul 2023 23:00:44 +0000
-Subject: [PATCH 01/16] arch: arm: aarch32: Refresh CORTEX_M_DWT in menuconfig
+Subject: [PATCH 1/7] arch: arm: aarch32: Refresh CORTEX_M_DWT in menuconfig
 
 Currently, CORTEX_M_DWT option does not refresh its value when
 TIMING_FUNCTIONS, on which it depends, is selected via menuconfig.
@@ -43,5 +43,5 @@ index eb54301c30c..07e3174887f 100644
  	default y if TIMING_FUNCTIONS
  	help
 -- 
-2.43.0
+2.50.0
 

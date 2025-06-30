@@ -1,7 +1,7 @@
-From 86313bab12214247a7bfd37aae8ee993e787c33a Mon Sep 17 00:00:00 2001
+From 4e9b46daaaaa901663e4aeb90b5550ef595a6bec Mon Sep 17 00:00:00 2001
 From: Gustavo Romero <gustavo.romero@linaro.org>
 Date: Thu, 14 Mar 2024 12:37:09 +0000
-Subject: [PATCH 05/16] cmake: emu: Allow QEMU to serve serial on a TCP/IP port
+Subject: [PATCH 5/7] cmake: emu: Allow QEMU to serve serial on a TCP/IP port
 
 This commit enables users to pass -DQEMU_SOCKET=y for 'west' when
 selecting to run the build on a QEMU VM. This allows the target's serial
@@ -29,5 +29,5 @@ index 25acaf02fdc..72e1196165c 100644
    # Redirect console to stdio, used for manual debugging.
    list(APPEND QEMU_FLAGS -chardev stdio,id=con,mux=on)
 -- 
-2.43.0
+2.50.0
 
