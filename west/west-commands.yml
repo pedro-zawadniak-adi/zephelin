@@ -4,3 +4,6 @@ west-commands:
       - name: zpl-gdb-capture
         class: ZplGdbCapture
         help: Capture traces using GDB
+      - name: zpl-uart-capture
+        class: ZplUartCapture
+        help: Capture traces using UART
