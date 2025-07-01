@@ -6,8 +6,8 @@
 
 #if defined(CONFIG_ZPL_TRACE_FORMAT_CTF)
 /* TFLite Micro events IDs */
-#define ZPL_TFLM_BEGIN_EVENT 0xA0
-#define ZPL_TFLM_END_EVENT 0xA1
+#define ZPL_TFLM_ENTER_EVENT 0xA0
+#define ZPL_TFLM_EXIT_EVENT 0xA1
 
 typedef struct __packed {
 	uint32_t timestamp;
@@ -17,7 +17,7 @@ typedef struct __packed {
 	uint8_t tag[CONFIG_ZPL_TRACE_CTF_MAX_STR_LEN];
 	uint32_t arena_used_bytes;
 	uint32_t arena_tail_usage;
-} zpl_tflm_begin_event_t;
+} zpl_tflm_enter_event_t;
 
 typedef struct __packed {
 	uint32_t timestamp;
@@ -27,14 +27,14 @@ typedef struct __packed {
 	uint8_t tag[CONFIG_ZPL_TRACE_CTF_MAX_STR_LEN];
 	uint32_t arena_used_bytes;
 	uint32_t arena_tail_usage;
-} zpl_tflm_end_event_t;
+} zpl_tflm_exit_event_t;
 #endif /* defined(CONFIG_ZPL_TRACE_FORMAT_CTF) */
 
-void zpl_emit_tflm_begin_event(
+void zpl_emit_tflm_enter_event(
 	uint32_t cycles, uint16_t subgraph_idx, uint16_t op_idx, const char *tag,
 	uint32_t arena_used_bytes, uint32_t arena_tail_usage);
 
-void zpl_emit_tflm_end_event(
+void zpl_emit_tflm_exit_event(
 	uint32_t cycles, uint16_t subgraph_idx, uint16_t op_idx, const char *tag,
 	uint32_t arena_used_bytes, uint32_t arena_tail_usage);
 

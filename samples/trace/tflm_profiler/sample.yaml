@@ -6,8 +6,8 @@ common:
   harness_config:
     type: one_line
     regex:
-      - "zpl_tflm_begin_event: subgraph_idx=0 op_idx=0 tag=CONV_2D"
-      - "zpl_tflm_end_event: subgraph_idx=0 op_idx=0 tag=CONV_2D"
+      - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=0 tag=CONV_2D"
+      - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=0 tag=CONV_2D"
 tests:
   sample.trace.tflm_profiler.plaintext:
     tags: profiling

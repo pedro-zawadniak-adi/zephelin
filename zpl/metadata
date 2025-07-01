@@ -6,7 +6,7 @@ typealias floating_point {
 } := float32;
 
 event {
-	name = zpl_tflm_begin_event;
+	name = zpl_tflm_enter;
 	id = 0xA0;
 	fields := struct {
 		uint16_t subgraph_idx;
@@ -18,7 +18,7 @@ event {
 };
 
 event {
-	name = zpl_tflm_end_event;
+	name = zpl_tflm_exit;
 	id = 0xA1;
 	fields := struct {
 		uint16_t subgraph_idx;
@@ -37,7 +37,7 @@ enum zpl_memory_region : uint8_t {
 };
 
 event {
-	name = zpl_tvm_begin_event;
+	name = zpl_tvm_enter;
 	id = 0xB0;
 	fields := struct {
 		uint8_t op_idx;
@@ -46,7 +46,7 @@ event {
 };
 
 event {
-	name = zpl_tvm_end_event;
+	name = zpl_tvm_exit;
 	id = 0xB1;
 	fields := struct {
 		uint8_t op_idx;
@@ -55,7 +55,7 @@ event {
 };
 
 event {
-	name = zpl_memory_event;
+	name = zpl_memory;
 	id = 0xEE;
 	fields := struct {
 		enum zpl_memory_region memory_region;

@@ -47,14 +47,14 @@ void TFLMProfiler::EndEvent(uint32_t event_handle) {
 
 void TFLMProfiler::DumpEvents() {
 	for (int i = 0; i < num_events_; ++i) {
-		zpl_emit_tflm_begin_event(
+		zpl_emit_tflm_enter_event(
 			begin_cycles_[i],
 			subgraph_idx_[i],
 			op_idx_[i],
 			tags_[i],
 			begin_arena_used_bytes_[i],
 			begin_arena_tail_usage_[i]);
-		zpl_emit_tflm_end_event(
+		zpl_emit_tflm_exit_event(
 			end_cycles_[i],
 			subgraph_idx_[i],
 			op_idx_[i],

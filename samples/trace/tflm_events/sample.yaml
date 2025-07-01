@@ -6,7 +6,7 @@ common:
   harness_config:
     type: one_line
     regex:
-      - "zpl_tflm_begin_event"
+      - "zpl_tflm_enter_event"
 tests:
   sample.trace.tflm_events.plaintext:
     tags: profiling

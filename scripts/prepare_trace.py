@@ -42,15 +42,15 @@ def layer_name(msg) -> str:
 CUSTOM_EVENTS = [
     CustomEventDefinition(
         "MODEL::",
-        "zpl_tflm_begin_event",
-        "zpl_tflm_end_event",
+        "zpl_tflm_enter",
+        "zpl_tflm_exit",
         layer_name,
         lambda _: {"runtime": "TFLite Micro"},
     ),
     CustomEventDefinition(
         "MODEL::",
-        "zpl_tvm_begin_event",
-        "zpl_tvm_end_event",
+        "zpl_tvm_enter",
+        "zpl_tvm_exit",
         layer_name,
         lambda _: {"runtime": "microTVM"},
     ),
@@ -74,7 +74,7 @@ def memory_data(msg) -> dict:
 # The dictionary of custom metadata events, where the key is CTF event name
 # and value is a definition of new metadata event.
 CUSTOM_METADATA = {
-    "zpl_memory_event": CustomMetadataDefinition("MEMORY", None, memory_data),
+    "zpl_memory": CustomMetadataDefinition("MEMORY", None, memory_data),
 }
 
 

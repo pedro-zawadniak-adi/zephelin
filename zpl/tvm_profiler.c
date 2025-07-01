@@ -41,11 +41,11 @@ void zpl_tvm_profiler_end_event(int event_handle)
 void zpl_tvm_profiler_dump_events()
 {
 	for (int i = 0; i < num_events_; ++i) {
-		zpl_emit_tvm_begin_event(
+		zpl_emit_tvm_enter_event(
 			begin_cycles_[i],
 			op_idx_[i],
 			tags_[i]);
-		zpl_emit_tvm_end_event(
+		zpl_emit_tvm_exit_event(
 			end_cycles_[i],
 			op_idx_[i],
 			tags_[i]);
