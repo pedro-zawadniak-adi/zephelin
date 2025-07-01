@@ -60,7 +60,7 @@ void zpl_profile_memory(void)
 	}
 }
 
-K_THREAD_DEFINE(zpl_memory_profiling,
+K_THREAD_DEFINE(zpl_mem_profiling,
 				CONFIG_ZPL_MEMORY_PROFILING_THREAD_STACK_SIZE,
 				zpl_profile_memory, NULL, NULL, NULL,
 				CONFIG_ZPL_MEMORY_PROFILING_THREAD_PRIORITY,
