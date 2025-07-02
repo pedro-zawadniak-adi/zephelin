@@ -7,3 +7,4 @@ telnetlib3==2.0.*
 pyrenode3 @ git+https://github.com/antmicro/pyrenode3.git
 ai-edge-litert
 pyserial==3.5
+pyusb==1.2.*

@@ -4,6 +4,8 @@ import subprocess
 from textwrap import dedent
 
 import serial
+import usb.core
+import usb.util
 from west.commands import WestCommand
 
 
@@ -101,3 +103,58 @@ class ZplUartCapture(WestCommand):
                     break
 
         ser.close()
+
+
+class ZplUsbCapture(WestCommand):
+    """Main class for the zpl-usb-capture command."""
+
+    def __init__(self):
+        """Init function for the zpl-usb-capture command."""
+        super().__init__(
+            "zpl-usb-capture",
+            "Capture traces using usb",
+            dedent("""
+                Capture traces using USB.
+
+                This command capures traces using USB."""),
+        )
+
+    def do_add_parser(self, parser_adder):
+        parser = parser_adder.add_parser(self.name, help=self.help, description=self.description)
+
+        parser.add_argument("vendor_id", help="Vendor ID")
+        parser.add_argument("product_id", help="Product ID")
+        parser.add_argument("output_path", help="Capture output path")
+
+        return parser
+
+    def do_run(self, args, unknown_args):
+        self.inf(f"{args.vendor_id} {args.product_id} {args.output_path}")
+
+        vid = int(args.vendor_id, 16)
+        pid = int(args.product_id, 16)
+        dev = usb.core.find(idVendor=vid, idProduct=pid)
+
+        if dev is None:
+            self.die(f"Couldn't open USB device with vid={vid} pid={pid}!")
+
+        # get the USB device interface
+        dev.set_configuration()
+        cfg = dev.get_active_configuration()
+        intf = cfg[(0, 0)]
+        usb.util.claim_interface(dev, intf)
+
+        read_ep = usb.util.find_descriptor(
+            intf,
+            custom_match=lambda x: usb.util.endpoint_direction(x.bEndpointAddress)
+            == usb.util.ENDPOINT_IN,
+        )
+
+        with open(args.output_path, "wb") as f:
+            while True:
+                try:
+                    buf = usb.util.create_buffer(10 * 1024)
+                    read_ep.read(buf, 10 * 1024)
+                    f.write("".join([chr(x) for x in buf]).encode())
+                except KeyboardInterrupt:
+                    break

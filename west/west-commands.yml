@@ -7,3 +7,6 @@ west-commands:
       - name: zpl-uart-capture
         class: ZplUartCapture
         help: Capture traces using UART
+      - name: zpl-usb-capture
+        class: ZplUsbCapture
+        help: Capture traces using USB
