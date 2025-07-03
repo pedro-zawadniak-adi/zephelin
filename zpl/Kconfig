@@ -45,7 +45,7 @@ config ZPL_TRACE_BACKEND_USB
 	bool "USB backend for Zephyr Profiling Library"
 	select GPIO
 	select TRACING_HANDLE_HOST_CMD
-	select USB_DEVICE_STACK
+	select USB_DEVICE_STACK_NEXT
 
 config ZPL_TRACE_BACKEND_DEBUGGER
 	bool "Debugger backend for Zephyr Profiling Library"

@@ -1,6 +1,7 @@
 #include <zephyr/tracing/tracing.h>
 #include <zephyr/tracing/tracing_format.h>
-#include <zephyr/usb/usb_device.h>
+#include <zephyr/usb/usbd.h>
+#include <zpl/usb_backend.h>
 
 LOG_MODULE_DECLARE(zpl);
 
@@ -14,13 +15,18 @@ void zpl_named_event(const char *name, uint32_t arg0, uint32_t arg1)
 int zpl_init(void)
 {
 #if defined(CONFIG_ZPL_TRACE_BACKEND_USB)
-	int ret;
+	struct usbd_context *zpl_usbd = zpl_usbd_init_device();
 
-	ret = usb_enable(NULL);
-	if (ret) {
-		LOG_ERR("USB backend enable failed\n");
+	if (zpl_usbd == NULL) {
+		LOG_ERR("Failed to initialize USB device");
 		return 1;
 	}
+
+	if (usbd_enable(zpl_usbd)) {
+		LOG_ERR("USB backend enable failed");
+		return 1;
+	}
+
 #endif /* CONFIG_ZPL_TRACE_BACKEND_USB */
 
 	// Emit event with current thread information,

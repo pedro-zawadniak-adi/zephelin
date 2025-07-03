@@ -1,20 +1,25 @@
 #include <zephyr/fff.h>
-#include <zephyr/usb/usb_device.h>
 #include <zephyr/ztest.h>
+#include <zephyr/usb/usbd.h>
 
 #include <zpl/lib.h>
 #include <zpl/configuration.h>
 
 #ifdef CONFIG_ZPL_TRACE_BACKEND_USB
 DEFINE_FFF_GLOBALS;
-FAKE_VALUE_FUNC(int, usb_enable, usb_dc_status_callback);
+FAKE_VALUE_FUNC(struct usbd_context *, zpl_usbd_init_device);
+FAKE_VALUE_FUNC(int, usbd_enable, struct usbd_context *);
 #endif
 
 ZTEST(zpl, test_library_init_succeed)
 {
 #ifdef CONFIG_ZPL_TRACE_BACKEND_USB
-	RESET_FAKE(usb_enable);
-	usb_enable_fake.return_val = 0;
+	struct usbd_context ctx;
+
+	RESET_FAKE(zpl_usbd_init_device);
+	RESET_FAKE(usbd_enable);
+	zpl_usbd_init_device_fake.return_val = &ctx;
+	usbd_enable_fake.return_val = 0;
 #endif /* CONFIG_ZPL_TRACE_BACKEND_USB */
 
 	zassert_equal(0, zpl_init(),
@@ -24,8 +29,20 @@ ZTEST(zpl, test_library_init_succeed)
 #ifdef CONFIG_ZPL_TRACE_BACKEND_USB
 ZTEST(zpl, test_library_init_fail)
 {
-	RESET_FAKE(usb_enable);
-	usb_enable_fake.return_val = -EINVAL;
+	struct usbd_context ctx;
+
+	RESET_FAKE(zpl_usbd_init_device);
+	RESET_FAKE(usbd_enable);
+	zpl_usbd_init_device_fake.return_val = &ctx;
+	usbd_enable_fake.return_val = -EINVAL;
+
+	zassert_equal(1, zpl_init(),
+			"zpl_init() was expected to fail");
+
+	RESET_FAKE(zpl_usbd_init_device);
+	RESET_FAKE(usbd_enable);
+	zpl_usbd_init_device_fake.return_val = NULL;
+	usbd_enable_fake.return_val = 0;
 
 	zassert_equal(1, zpl_init(),
 			"zpl_init() was expected to fail");
