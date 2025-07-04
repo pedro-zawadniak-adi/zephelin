@@ -3,6 +3,7 @@
 #include <tvm/runtime/crt/graph_executor.h>
 #include <tvm/runtime/crt/internal/graph_executor/graph_executor.h>
 #include <dlpack/dlpack.h>
+#include <zephyr/kernel.h>
 #include <zpl/tvm_profiler.h>
 #include "model.h"
 #include "magic_wand.h"
