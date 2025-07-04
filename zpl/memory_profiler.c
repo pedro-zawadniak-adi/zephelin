@@ -25,8 +25,19 @@ void zpl_profile_heap(void)
 	struct sys_heap **ha;
 	size_t i;
 	struct sys_memory_stats stats;
+	bool included_in_k_heap;
 
 	for (i = 0; i < sys_heap_array_get(&ha); i++) {
+		// Filter out heaps included in profile_k_heap
+		included_in_k_heap = false;
+		STRUCT_SECTION_FOREACH(k_heap, k_ha) {
+			if ((uintptr_t)ha[i] == (uintptr_t)&k_ha->heap) {
+				included_in_k_heap = true;
+				break;
+			}
+		}
+		if (included_in_k_heap) continue;
+
 		sys_heap_runtime_stats_get(ha[i], &stats);
 		zpl_emit_memory_event(ZPL_HEAP, (uintptr_t)ha[i], stats.allocated_bytes, stats.free_bytes);
 	}
