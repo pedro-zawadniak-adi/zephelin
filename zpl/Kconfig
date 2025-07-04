@@ -1,3 +1,5 @@
+rsource "Kconfig.mute_traces"
+
 config ZPL
 	bool "Support for Zephyr Profiling Library"
 	help
