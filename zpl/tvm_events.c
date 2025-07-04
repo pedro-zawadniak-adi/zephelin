@@ -2,6 +2,7 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/tracing/tracing_format.h>
+
 #include <stdio.h>
 
 void zpl_emit_tvm_begin_event(uint32_t cycles, uint8_t op_idx, const char* tag)
@@ -18,7 +19,7 @@ void zpl_emit_tvm_begin_event(uint32_t cycles, uint8_t op_idx, const char* tag)
 		(uint8_t *)&zpl_tvm_begin_event, sizeof(zpl_tvm_begin_event_t)
 	);
 #elif defined(CONFIG_ZPL_TRACE_FORMAT_PLAINTEXT)
-	printk("zpl_tvm_begin_event: op_idx=%d tag=%s\n", op_idx, tag);
+	TRACING_STRING("zpl_tvm_begin_event: op_idx=%d tag=%s\n", op_idx, tag);
 #endif /* CONFIG_ZPL_TRACE_FORMAT_* */
 }
 
@@ -36,6 +37,6 @@ void zpl_emit_tvm_end_event(uint32_t cycles, uint8_t op_idx, const char* tag)
 		(uint8_t *)&zpl_tvm_end_event, sizeof(zpl_tvm_end_event_t)
 	);
 #elif defined(CONFIG_ZPL_TRACE_FORMAT_PLAINTEXT)
-	printk("zpl_tvm_end_event: op_idx=%d tag=%s\n", op_idx, tag);
+	TRACING_STRING("zpl_tvm_end_event: op_idx=%d tag=%s\n", op_idx, tag);
 #endif /* CONFIG_ZPL_TRACE_FORMAT_* */
 }
