@@ -218,7 +218,7 @@ def ctf_to_tef(
     skip_args: bool = False,
     custom_metadata: dict[str, CustomMetadataDefinition] | None = None,
     custom_events: list[CustomEventDefinition] | None = None,
-) -> list:
+) -> tuple[list, dict[str, int]]:
     """
     Converts CTF trace to the JSON in TEF format.
 
@@ -238,6 +238,8 @@ def ctf_to_tef(
     -------
     list
         The trace in TEF format.
+    dict[str, int]
+        The dictionary mapping thread name to its ID.
     """
     if custom_metadata is None:
         custom_metadata = {}
@@ -259,12 +261,27 @@ def ctf_to_tef(
 
     converted = []
 
-    current_thread = 0  # Use 0 as main thread ID
+    thread_name = {}
+    current_thread = 0  # By default use 0 as main thread ID
+    msg_it = bt2.TraceCollectionMessageIterator(path)
+    # Try to get main thread ID
+    for msg in msg_it:
+        if not hasattr(msg, "event"):
+            continue
+        fields = msg.event.payload_field
+        if msg.event.name != "thread_info" or fields.get("name", None) != "main":
+            continue
+        thread_name["main"] = int(fields.get("thread_id", 0))
+        current_thread = thread_name["main"]
+        break
+    # Restart the iterator
     msg_it = bt2.TraceCollectionMessageIterator(path)
     for msg in msg_it:
         # Skip messages without events
         if not hasattr(msg, "event"):
             continue
+        fields = msg.event.payload_field if msg.event.payload_field else {}
+        thread_id = int(fields.get("thread_id", current_thread))
         # Process custom metadata
         if msg.event.name in custom_metadata:
             m = custom_metadata[msg.event.name]
@@ -272,7 +289,7 @@ def ctf_to_tef(
                 emit_event(
                     msg,
                     f"{m.new_name}{m.suffix_func(msg) if m.suffix_func else ''}",
-                    current_thread,
+                    thread_id,
                     EventPhase.METADATA,
                     skip_args=skip_args,
                     additional_args=m.additional_arg_func(msg) if m.additional_arg_func else {},
@@ -285,7 +302,7 @@ def ctf_to_tef(
                 emit_event(
                     msg,
                     f"{custom_event_begin[msg.event.name][0]}{custom_event_name_func[msg.event.name](msg)}",
-                    current_thread,
+                    thread_id,
                     EventPhase.BEGIN,
                     skip_args=skip_args,
                     additional_args=custom_event_args_func[msg.event.name](msg)
@@ -299,7 +316,7 @@ def ctf_to_tef(
                 emit_event(
                     msg,
                     f"{custom_event_end[msg.event.name][0]}{custom_event_name_func[msg.event.name](msg)}",
-                    current_thread,
+                    thread_id,
                     EventPhase.END,
                     skip_args=skip_args,
                     additional_args=custom_event_args_func[msg.event.name](msg)
@@ -312,32 +329,40 @@ def ctf_to_tef(
         if msg.event.name.endswith("_enter"):
             converted.append(
                 emit_event(
-                    msg, msg.event.name[:-6], current_thread, EventPhase.BEGIN, skip_args=skip_args
+                    msg,
+                    msg.event.name[:-6],
+                    thread_id,
+                    EventPhase.BEGIN,
+                    skip_args=skip_args,
                 )
             )
             continue
         if msg.event.name.endswith("_exit"):
             converted.append(
                 emit_event(
-                    msg, msg.event.name[:-5], current_thread, EventPhase.END, skip_args=skip_args
+                    msg,
+                    msg.event.name[:-5],
+                    thread_id,
+                    EventPhase.END,
+                    skip_args=skip_args,
                 )
             )
             continue
         # Check whether thread has changed
+        if msg.event.name == "thread_name_set":
+            thread_name[str(fields["name"])] = int(fields["thread_id"])
+        # Check whether thread has changed
         if msg.event.name == "thread_switched_in":
-            current_thread = (
-                0
-                if msg.event.payload_field["name"] == "main"
-                else int(msg.event.payload_field["thread_id"])
-            )
+            current_thread = thread_id = int(fields["thread_id"])
+            thread_name[str(fields["name"])] = current_thread
         # Add instantaneous event representation
         converted += [
-            emit_event(msg, msg.event.name, current_thread, EventPhase.BEGIN, skip_args=skip_args),
+            emit_event(msg, msg.event.name, thread_id, EventPhase.BEGIN, skip_args=skip_args),
             emit_event(
-                msg, msg.event.name, current_thread, EventPhase.END, INSTANT_EVENT_LENGTH, skip_args
+                msg, msg.event.name, thread_id, EventPhase.END, INSTANT_EVENT_LENGTH, skip_args
             ),
         ]
-    return converted
+    return converted, thread_name
 
 
 @contextmanager

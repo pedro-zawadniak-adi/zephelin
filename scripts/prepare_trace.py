@@ -137,8 +137,23 @@ if __name__ == "__main__":
     )
     args = parser.parse_args(sys.argv[1:])
 
+    # Convert CTF
     with prepare_dir(args.ctf_trace, args.zephyr_base) as tmp_dir:
-        tef_trace = ctf_to_tef(str(tmp_dir), False, CUSTOM_METADATA, CUSTOM_EVENTS)
+        tef_trace, thread_name = ctf_to_tef(str(tmp_dir), False, CUSTOM_METADATA, CUSTOM_EVENTS)
+
+    if thread_name:
+        # Custom metadata event supported by Speedscope to associate ID with thread name
+        tef_trace += [
+            {
+                "name": "thread_name",
+                "cat": "zephyr",
+                "ph": EventPhase.METADATA.value,
+                "pid": 0,
+                "tid": tid,
+                "args": {"name": t_name},
+            }
+            for t_name, tid in thread_name.items()
+        ]
 
     if args.tflm_model_path is not None:
         from extract_tflite_model_data import extract_model_data
