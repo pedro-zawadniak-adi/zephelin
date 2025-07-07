@@ -13,6 +13,7 @@ void zpl_emit_tflm_enter_event(
 	zpl_tflm_enter_event_t zpl_tflm_enter_event = {
 		.timestamp = k_cyc_to_ns_floor64(cycles),
 		.id = ZPL_TFLM_ENTER_EVENT,
+		.thread_id = (uint32_t)k_current_get(),
 		.subgraph_idx = subgraph_idx,
 		.op_idx = op_idx,
 		.arena_used_bytes = arena_used_bytes,
@@ -39,6 +40,7 @@ void zpl_emit_tflm_exit_event(
 	zpl_tflm_exit_event_t zpl_tflm_exit_event = {
 		.timestamp = k_cyc_to_ns_floor64(cycles),
 		.id = ZPL_TFLM_EXIT_EVENT,
+		.thread_id = (uint32_t)k_current_get(),
 		.subgraph_idx = subgraph_idx,
 		.op_idx = op_idx,
 		.arena_used_bytes = arena_used_bytes,

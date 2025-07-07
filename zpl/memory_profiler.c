@@ -17,7 +17,8 @@ void zpl_profile_stack(const struct k_thread *thread, void *user_data)
 		return;
 	}
 
-	zpl_emit_memory_event(ZPL_STACK, thread->stack_info.start, thread->stack_info.size - unused, unused);
+	zpl_emit_memory_for_thread_event(
+	  ZPL_STACK, thread->stack_info.start, thread->stack_info.size - unused, unused, (uint32_t)thread);
 }
 
 void zpl_profile_heap(void)

@@ -3,7 +3,7 @@
 
 #include <zpl/memory_event.h>
 
-void zpl_emit_memory_event(enum zpl_memory_region memory_region, uintptr_t memory_addr, uint32_t used_memory, uint32_t unused_memory)
+void zpl_emit_memory_for_thread_event(enum zpl_memory_region memory_region, uintptr_t memory_addr, uint32_t used_memory, uint32_t unused_memory, uint32_t for_thread_id)
 {
 #if defined(CONFIG_ZPL_TRACE_FORMAT_CTF)
 	uint32_t cycles = k_cycle_get_32();
@@ -15,6 +15,7 @@ void zpl_emit_memory_event(enum zpl_memory_region memory_region, uintptr_t memor
 		.memory_addr = memory_addr,
 		.used = used_memory,
 		.unused = unused_memory,
+		.for_thread_id = for_thread_id,
 	};
 
 	tracing_format_raw_data(
@@ -22,9 +23,14 @@ void zpl_emit_memory_event(enum zpl_memory_region memory_region, uintptr_t memor
 	);
 #elif defined(CONFIG_ZPL_TRACE_FORMAT_PLAINTEXT)
 	TRACING_STRING(
-		 "zpl_memory_event %s (%#x) %uB %uB\n", zpl_memory_region_enum_to_string(memory_region), memory_addr, used_memory, unused_memory
+		 "zpl_memory_event %s (%#x) %uB %uB %uB\n", zpl_memory_region_enum_to_string(memory_region), memory_addr, used_memory, unused_memory, for_thread_id
 	);
 #endif /* CONFIG_ZPL_TRACE_FORMAT_* */
+}
+
+void zpl_emit_memory_event(enum zpl_memory_region memory_region, uintptr_t memory_addr, uint32_t used_memory, uint32_t unused_memory)
+{
+	zpl_emit_memory_for_thread_event(memory_region, memory_addr, used_memory, unused_memory, (uint32_t)NULL);
 }
 
 const char* zpl_memory_region_enum_to_string(enum zpl_memory_region memory_region)

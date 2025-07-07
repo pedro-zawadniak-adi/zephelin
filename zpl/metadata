@@ -9,6 +9,7 @@ event {
 	name = zpl_tflm_enter;
 	id = 0xA0;
 	fields := struct {
+		uint32_t thread_id;
 		uint16_t subgraph_idx;
 		uint16_t op_idx;
 		ctf_bounded_string_t tag[20];
@@ -21,6 +22,7 @@ event {
 	name = zpl_tflm_exit;
 	id = 0xA1;
 	fields := struct {
+		uint32_t thread_id;
 		uint16_t subgraph_idx;
 		uint16_t op_idx;
 		ctf_bounded_string_t tag[20];
@@ -40,6 +42,7 @@ event {
 	name = zpl_tvm_enter;
 	id = 0xB0;
 	fields := struct {
+		uint32_t thread_id;
 		uint8_t op_idx;
 		ctf_bounded_string_t tag[60];
 	};
@@ -49,6 +52,7 @@ event {
 	name = zpl_tvm_exit;
 	id = 0xB1;
 	fields := struct {
+		uint32_t thread_id;
 		uint8_t op_idx;
 		ctf_bounded_string_t tag[60];
 	};
@@ -62,6 +66,7 @@ event {
 		uint32_t memory_addr;
 		uint32_t used;
 		uint32_t unused;
+		uint32_t for_thread_id;
 	};
 };
 
