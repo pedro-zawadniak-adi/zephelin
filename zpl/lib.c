@@ -23,5 +23,8 @@ int zpl_init(void)
 	}
 #endif /* CONFIG_ZPL_TRACE_BACKEND_USB */
 
+	// Emit event with current thread information,
+	// this allows to associate ID with the main thread
+	sys_port_trace_k_thread_info(k_current_get());
 	return 0;
 }
