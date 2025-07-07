@@ -12,6 +12,7 @@
 typedef struct __packed {
 	uint32_t timestamp;
 	uint8_t id;
+	uint32_t thread_id;
 	uint8_t op_idx;
 	uint8_t tag[CONFIG_ZPL_TRACE_CTF_MAX_LONG_STR_LEN];
 } zpl_tvm_enter_event_t;
@@ -19,6 +20,7 @@ typedef struct __packed {
 typedef struct __packed {
 	uint32_t timestamp;
 	uint8_t id;
+	uint32_t thread_id;
 	uint8_t op_idx;
 	uint8_t tag[CONFIG_ZPL_TRACE_CTF_MAX_LONG_STR_LEN];
 } zpl_tvm_exit_event_t;

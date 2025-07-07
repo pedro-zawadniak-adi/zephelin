@@ -12,6 +12,7 @@
 typedef struct __packed {
 	uint32_t timestamp;
 	uint8_t id;
+	uint32_t thread_id;
 	uint16_t subgraph_idx;
 	uint16_t op_idx;
 	uint8_t tag[CONFIG_ZPL_TRACE_CTF_MAX_STR_LEN];
@@ -22,6 +23,7 @@ typedef struct __packed {
 typedef struct __packed {
 	uint32_t timestamp;
 	uint8_t id;
+	uint32_t thread_id;
 	uint16_t subgraph_idx;
 	uint16_t op_idx;
 	uint8_t tag[CONFIG_ZPL_TRACE_CTF_MAX_STR_LEN];
