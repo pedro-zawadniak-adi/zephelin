@@ -55,10 +55,10 @@
 #define ZPL_CONF_UART_DEF(name, config)   \
 	ZPL_CONF_VARIABLES(name)                \
 	ZPL_WAIT_FOR_CONF_DEF(name, config)     \
+	ZPL_CHECK_IF_CONF_DEF(name, config)     \
 	ZPL_CONF_CHANGE_STATE_DEF(name)         \
 	ZPL_CONF_SHELL_DEF(name)
 
 
 /* Config definitions */
 ZPL_CONF_UART_DEF(mem_usage_trace, CONFIG_ZPL_MEMORY_USAGE_TRACE)
-ZPL_CHECK_IF_CONF_DEF(mem_usage_trace, CONFIG_ZPL_MEMORY_USAGE_TRACE)

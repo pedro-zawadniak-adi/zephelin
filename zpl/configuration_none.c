@@ -15,6 +15,9 @@ void zpl_wait_for_##name(void)               \
 		return IS_ENABLED(config);                    \
 	}
 
+#define ZPL_CONF_NONE_DEF(name, config)   \
+	ZPL_WAIT_FOR_CONF_DEF(name, config)     \
+	ZPL_CHECK_IF_CONF_DEF(name, config)
+
 /* Config definitions */
-ZPL_WAIT_FOR_CONF_DEF(mem_usage_trace, CONFIG_ZPL_MEMORY_USAGE_TRACE)
-ZPL_CHECK_IF_CONF_DEF(mem_usage_trace, CONFIG_ZPL_MEMORY_USAGE_TRACE)
+ZPL_CONF_NONE_DEF(mem_usage_trace, CONFIG_ZPL_MEMORY_USAGE_TRACE)
