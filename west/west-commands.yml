@@ -10,3 +10,6 @@ west-commands:
       - name: zpl-usb-capture
         class: ZplUsbCapture
         help: Capture traces using USB
+      - name: zpl-debug-config
+        class: ZplDebugConfig
+        help: Enable/Disable configs in runtime using debug interface

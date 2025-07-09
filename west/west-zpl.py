@@ -158,3 +158,51 @@ class ZplUsbCapture(WestCommand):
                     f.write("".join([chr(x) for x in buf]).encode())
                 except KeyboardInterrupt:
                     break
+
+
+class ZplDebugConfig(WestCommand):
+    """Main class for the zpl-debug-config command."""
+
+    def __init__(self):
+        """Init function for the zpl-debug-config command."""
+        super().__init__(
+            "zpl-debug-config",
+            "Enable/Disable configs in runtime using debug interface.",
+            dedent("""
+                Enable/Disable configs in runtime using debug interface.
+
+                This command can list available configs and enable/disable them."""),
+        )
+
+    def do_add_parser(self, parser_adder):
+        parser = parser_adder.add_parser(self.name, help=self.help, description=self.description)
+
+        parser.add_argument("elf_path", help="Zephyr ELF path")
+        parser.add_argument("config", help="Config to set")
+        parser.add_argument("value", help="Value of the config (enable/disable)")
+
+        return parser
+
+    def do_run(self, args, unknown_args):
+        self.inf(f"Setting {args.config} config to {args.value}")
+
+        cmd = [
+            "gdb-multiarch",
+            "-batch",
+            "-ex",
+            "set pagination off",
+            "-ex",
+            "target remote :3333",
+            "-ex",
+            f"set var debug_configs.{args.config} = {1 if args.value == 'enable' else 0}",
+            "-ex",
+            "quit",
+            args.elf_path,
+        ]
+
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        (output, _) = proc.communicate()
+        exit_code = proc.wait()
+
+        if exit_code != 0:
+            self.err(output)
