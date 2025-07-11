@@ -7,6 +7,8 @@ extern "C" {
 
 namespace zpl {
 
+#if defined(CONFIG_ZPL_TRACE_FULL_MODE) || defined(CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE)
+
 uint32_t TFLMProfiler::BeginEvent(uint16_t subgraph_idx, uint16_t op_idx, const char *tag) {
 	if (num_events_ >= CONFIG_ZPL_TFLM_PROFILER_MAX_EVENTS) {
 		return -1;
@@ -29,6 +31,7 @@ uint32_t TFLMProfiler::BeginEvent(uint16_t subgraph_idx, uint16_t op_idx, const 
 	++num_events_;
 	return event_handle;
 }
+
 void TFLMProfiler::EndEvent(uint32_t event_handle) {
 	if (event_handle >= CONFIG_ZPL_TFLM_PROFILER_MAX_EVENTS) {
 		return;
@@ -65,6 +68,16 @@ void TFLMProfiler::DumpEvents() {
 
 	num_events_ = 0;
 }
+
+#else /* defined(CONFIG_ZPL_TRACE_FULL_MODE) || defined(CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE) */
+
+uint32_t TFLMProfiler::BeginEvent(uint16_t subgraph_idx, uint16_t op_idx, const char *tag) { return -1; }
+
+void TFLMProfiler::EndEvent(uint32_t event_handle) {}
+
+void TFLMProfiler::DumpEvents() {}
+
+#endif /* defined(CONFIG_ZPL_TRACE_FULL_MODE) || defined(CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE) */
 
 void TFLMProfiler::SetInterpreter(const tflite::MicroInterpreter* interpreter) {
 	interpreter_ = interpreter;

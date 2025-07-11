@@ -51,6 +51,9 @@ public:
 	void SetAllocator(const tflite::MicroAllocator* allocator);
 
 private:
+
+#if defined(CONFIG_ZPL_TRACE_FULL_MODE) || defined(CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE)
+
 	/* Buffers with events data */
 	uint16_t subgraph_idx_[CONFIG_ZPL_TFLM_PROFILER_MAX_EVENTS];
 	uint16_t op_idx_[CONFIG_ZPL_TFLM_PROFILER_MAX_EVENTS];
@@ -62,6 +65,8 @@ private:
 	uint32_t begin_arena_tail_usage_[CONFIG_ZPL_TFLM_PROFILER_MAX_EVENTS];
 	uint32_t end_arena_tail_usage_[CONFIG_ZPL_TFLM_PROFILER_MAX_EVENTS];
 	int num_events_ = 0;
+
+#endif /* defined(CONFIG_ZPL_TRACE_FULL_MODE) || defined(CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE) */
 
 	/* Pointer to interpreter that is used to obtain more data */
 	const tflite::MicroInterpreter* interpreter_ = nullptr;
