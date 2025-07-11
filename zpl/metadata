@@ -59,6 +59,16 @@ event {
 };
 
 event {
+	name = zpl_inference_enter;
+	id = 0xD0;
+};
+
+event {
+	name = zpl_inference_exit;
+	id = 0xD1;
+};
+
+event {
 	name = zpl_memory;
 	id = 0xEE;
 	fields := struct {

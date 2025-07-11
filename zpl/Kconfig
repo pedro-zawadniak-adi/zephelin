@@ -126,6 +126,9 @@ config ZPL_TFLM_PROFILER_MAX_EVENTS
 	default 32
 	depends on ZPL_TFLM_PROFILER
 
+config ZPL_INFERENCE_PROFILING
+	bool "Build with inference profiling support"
+
 choice
 	prompt "Zephyr Profiling Library trace mode"
 	default ZPL_TRACE_LAYER_PROFILING_MODE
@@ -133,14 +136,17 @@ choice
 
 config ZPL_TRACE_MINIMAL_MODE
 	bool "Extremely lightweight profiling mode with no persistent trace"
+	imply ZPL_INFERENCE_PROFILING
 	imply ZPL_MEMORY_USAGE_TRACE
 
 config ZPL_TRACE_LAYER_PROFILING_MODE
 	bool "Layer-level timing with optional runtime hooks"
+	imply ZPL_INFERENCE_PROFILING
 	imply ZPL_MEMORY_USAGE_TRACE
 
 config ZPL_TRACE_FULL_MODE
 	bool "Full profiling mode that enables complete CTF tracing"
+	imply ZPL_INFERENCE_PROFILING
 	imply ZPL_MEMORY_USAGE_TRACE
 	imply TRACING_SYSCALL
 	imply TRACING_THREAD
