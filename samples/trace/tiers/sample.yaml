@@ -1,0 +1,108 @@
+sample:
+  name: simple
+common:
+  tags: profiling
+tests:
+  sample.trace.tiers.plaintext.minimal:
+    harness: console
+    extra_configs:
+      - CONFIG_ZPL_TRACE_MINIMAL_MODE=y
+    harness_config:
+      type: one_line
+      regex:
+        - "zpl_inference_enter:"
+        - "zpl_inference_exit:"
+        - "zpl_memory_event:"
+  sample.trace.tiers.plaintext.layer_profiling:
+    harness: console
+    extra_configs:
+      - CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE=y
+    harness_config:
+      type: one_line
+      regex:
+        - "zpl_inference_enter:"
+        - "zpl_inference_exit:"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=0 tag=CONV_2D"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=0 tag=CONV_2D"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=1 tag=MAX_POOL_2D"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=1 tag=MAX_POOL_2D"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=2 tag=CONV_2D"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=2 tag=CONV_2D"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=3 tag=MAX_POOL_2D"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=3 tag=MAX_POOL_2D"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=4 tag=RESHAPE"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=4 tag=RESHAPE"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=5 tag=FULLY_CONNECTED"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=5 tag=FULLY_CONNECTED"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=6 tag=FULLY_CONNECTED"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=6 tag=FULLY_CONNECTED"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=7 tag=SOFTMAX"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=7 tag=SOFTMAX"
+        - "zpl_memory_event"
+  sample.trace.tiers.plaintext.full:
+    harness: console
+    extra_configs:
+      - CONFIG_ZPL_TRACE_FULL_MODE=y
+    harness_config:
+      type: one_line
+      regex:
+        - "zpl_inference_enter:"
+        - "zpl_inference_exit:"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=0 tag=CONV_2D"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=0 tag=CONV_2D"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=1 tag=MAX_POOL_2D"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=1 tag=MAX_POOL_2D"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=2 tag=CONV_2D"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=2 tag=CONV_2D"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=3 tag=MAX_POOL_2D"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=3 tag=MAX_POOL_2D"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=4 tag=RESHAPE"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=4 tag=RESHAPE"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=5 tag=FULLY_CONNECTED"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=5 tag=FULLY_CONNECTED"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=6 tag=FULLY_CONNECTED"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=6 tag=FULLY_CONNECTED"
+        - "zpl_tflm_enter_event: subgraph_idx=0 op_idx=7 tag=SOFTMAX"
+        - "zpl_tflm_exit_event: subgraph_idx=0 op_idx=7 tag=SOFTMAX"
+        - "sys_trace_isr_enter"
+        - "sys_trace_isr_exit"
+        - "zpl_memory_event"
+  sample.trace.tiers.plaintext.minimal.robot:
+    harness: robot
+    extra_configs:
+      - CONFIG_ZPL_TRACE_MINIMAL_MODE=y
+    harness_config:
+      robot_testsuite: plaintext_minimal.robot
+  sample.trace.tiers.plaintext.layer_profiling.robot:
+    harness: robot
+    extra_configs:
+      - CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE=y
+    harness_config:
+      robot_testsuite: plaintext_layer_profiling.robot
+  sample.trace.tiers.plaintext.full.robot:
+    harness: robot
+    extra_configs:
+      - CONFIG_ZPL_TRACE_FULL_MODE=y
+    harness_config:
+      robot_testsuite: plaintext_full.robot
+  sample.trace.tiers.ctf.minimal.robot:
+    harness: robot
+    extra_configs:
+      - CONFIG_ZPL_TRACE_MINIMAL_MODE=y
+      - CONFIG_ZPL_TRACE_FORMAT_CTF=y
+    harness_config:
+      robot_testsuite: ctf_minimal.robot
+  sample.trace.tiers.ctf.layer_profiling.robot:
+    harness: robot
+    extra_configs:
+      - CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE=y
+      - CONFIG_ZPL_TRACE_FORMAT_CTF=y
+    harness_config:
+      robot_testsuite: ctf_layer_profiling.robot
+  sample.trace.tiers.ctf.full.robot:
+    harness: robot
+    extra_configs:
+      - CONFIG_ZPL_TRACE_FULL_MODE=y
+      - CONFIG_ZPL_TRACE_FORMAT_CTF=y
+    harness_config:
+      robot_testsuite: ctf_full.robot
