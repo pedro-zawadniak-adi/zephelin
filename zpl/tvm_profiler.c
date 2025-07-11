@@ -7,11 +7,14 @@ TVMProfiler tvm_profiler = {
     .end_event_cb = zpl_tvm_profiler_end_event,
 };
 
+#if defined(CONFIG_ZPL_TRACE_FULL_MODE) || defined(CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE)
+
 static int num_events_ = 0;
 static uint8_t op_idx_[CONFIG_ZPL_TVM_PROFILER_MAX_EVENTS];
 static uint32_t begin_cycles_[CONFIG_ZPL_TVM_PROFILER_MAX_EVENTS];
 static uint32_t end_cycles_[CONFIG_ZPL_TVM_PROFILER_MAX_EVENTS];
 static const char *tags_[CONFIG_ZPL_TVM_PROFILER_MAX_EVENTS];
+
 
 int zpl_tvm_profiler_begin_event(int op_idx, const char* tag)
 {
@@ -53,3 +56,13 @@ void zpl_tvm_profiler_dump_events()
 
 	num_events_ = 0;
 }
+
+#else /* defined(CONFIG_ZPL_TRACE_FULL_MODE) || defined(CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE) */
+
+int zpl_tvm_profiler_begin_event(int op_idx, const char* tag) { return -1; }
+
+void zpl_tvm_profiler_end_event(int event_handle) {}
+
+void zpl_tvm_profiler_dump_events() {}
+
+#endif /* defined(CONFIG_ZPL_TRACE_FULL_MODE) || defined(CONFIG_ZPL_TRACE_LAYER_PROFILING_MODE) */
