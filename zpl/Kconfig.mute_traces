@@ -71,6 +71,4 @@ config TRACING_GPIO
         default n
 
 config TRACING_IDLE
-        # TODO: investigate why the USB backend doesn't work with idle traces muted
-        default y if ZPL_TRACE_BACKEND_USB
         default n

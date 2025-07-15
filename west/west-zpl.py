@@ -129,14 +129,15 @@ class ZplUsbCapture(WestCommand):
         return parser
 
     def do_run(self, args, unknown_args):
-        self.inf(f"{args.vendor_id} {args.product_id} {args.output_path}")
-
         vid = int(args.vendor_id, 16)
         pid = int(args.product_id, 16)
         dev = usb.core.find(idVendor=vid, idProduct=pid)
 
         if dev is None:
             self.die(f"Couldn't open USB device with vid={vid} pid={pid}!")
+        else:
+            self.inf(f"Capturing traces from USB device {args.vendor_id}:{args.product_id}...")
+            self.inf("Press C-c to stop.")
 
         # get the USB device interface
         dev.set_configuration()
@@ -150,12 +151,21 @@ class ZplUsbCapture(WestCommand):
             == usb.util.ENDPOINT_IN,
         )
 
+        write_ep = usb.util.find_descriptor(
+            intf,
+            custom_match=lambda x: usb.util.endpoint_direction(x.bEndpointAddress)
+            == usb.util.ENDPOINT_OUT,
+        )
+        write_ep.write("enable")
+
         with open(args.output_path, "wb") as f:
             while True:
                 try:
                     buf = usb.util.create_buffer(10 * 1024)
-                    read_ep.read(buf, 10 * 1024)
+                    read_ep.read(buf, 2000)
                     f.write("".join([chr(x) for x in buf]).encode())
+                except usb.core.USBTimeoutError:
+                    self.die("USB operation timeout!")
                 except KeyboardInterrupt:
                     break
 
