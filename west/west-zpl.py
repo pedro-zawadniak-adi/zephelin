@@ -1,6 +1,8 @@
 """ZPL West extension for tracing data capture."""
 
+import signal
 import subprocess
+import time
 from textwrap import dedent
 
 import serial
@@ -34,7 +36,15 @@ class ZplGdbCapture(WestCommand):
     def do_run(self, args, unknown_args):
         self.inf(f"Capturing traces to {args.output_path}...")
 
-        cmd = [
+        cmd_debugserver = "west debugserver".split()
+        proc_debugserver = subprocess.Popen(
+            cmd_debugserver, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+
+        self.inf("Waiting for the debugserver to start...")
+        time.sleep(2)
+
+        cmd_gdb = [
             "gdb-multiarch",
             "-batch",
             "-ex",
@@ -52,13 +62,19 @@ class ZplGdbCapture(WestCommand):
             args.elf_path,
         ]
 
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        (output, _) = proc.communicate()
-        exit_code = proc.wait()
+        self.inf("Saving traces...")
+        proc_gdb = subprocess.Popen(cmd_gdb, stdout=subprocess.PIPE)
+        (output, _) = proc_gdb.communicate()
+        exit_code = proc_gdb.wait()
 
         if exit_code != 0:
             self.err(output)
             self.die("Failed to capture tracing data!")
+
+        self.inf("Stopping the debugserver...")
+        proc_debugserver.send_signal(signal.SIGINT)
+
+        self.inf("Done.")
 
 
 class ZplUartCapture(WestCommand):
