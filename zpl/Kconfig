@@ -68,10 +68,6 @@ choice TRACING_BACKEND_CHOICE
 	default TRACING_BACKEND_RAM if ZPL_TRACE_BACKEND_DEBUGGER
 endchoice
 
-config USB_DEVICE_VID
-	# ZEPHYR USB-DEV
-	default 0x2FE9 if ZPL_TRACE_BACKEND_USB
-
 config ZPL_TRACE_CTF_MAX_STR_LEN
 	int "Maximum string length for CTF events"
 	default 20
