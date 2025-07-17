@@ -44,6 +44,9 @@ config ZPL_TRACE_BACKEND_TRIVIAL_UART
 config ZPL_TRACE_BACKEND_USB
 	bool "USB backend for Zephyr Profiling Library"
 	select GPIO
+	# Selecting HWINFO should be dropped after this issue is resolved:
+	# https://github.com/zephyrproject-rtos/zephyr/issues/93266
+	select HWINFO
 	select TRACING_HANDLE_HOST_CMD
 	select USB_DEVICE_STACK_NEXT
 
