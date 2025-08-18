@@ -294,7 +294,7 @@ def prepare(args: argparse.Namespace):
     if args.tflm_model_path is not None:
         from extract_tflite_model_data import extract_model_data
 
-        add_model_metadata(tef_trace, extract_model_data(args.tflm_model_path))
+        add_model_metadata(tef_trace, extract_model_data(args.tflm_model_path, args.zephyr_base))
 
     # Metadata about TVM model
     if args.tvm_model_path is not None:
