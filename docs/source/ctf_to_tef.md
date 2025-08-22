@@ -325,6 +325,7 @@ The `MODEL` {{TEF_Metadata}} event contains following information:
   * `inputs` and `outputs` - lists with indices pointing to `tensors` with input and output data (respectively),
   * `inputs_types` and `outputs_types` - the operation's input and output data types,
   * `inputs_shapes` and `outputs_shapes` - the operation's input and output shapes.
+  * `parameters` - operation's parameters (e.g. `padding` or `fused_activation_function`).
 
 :::{example} Example event of Magic Wand model for TFLite Micro runtime
 :collapsible:
