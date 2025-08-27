@@ -1,0 +1,12 @@
+# Copyright (c) 2025 Analog Devices, Inc.
+# Copyright (c) 2025 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+config ZPL_SAMPLE_TFLM_MODEL
+	string "TFLite Micro model to use"
+	default "magic-wand"
+
+config ZPL_SAMPLE_TFLM_BUFFER_SIZE
+	int "TFLite Micro buffer size in kilobytes"
+	default 40

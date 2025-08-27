@@ -9,7 +9,7 @@ zephyr_include_directories("${CMAKE_CURRENT_BINARY_DIR}/src" "${CMAKE_CURRENT_SO
 
 # generate header with model data
 
-set(model_path "${CMAKE_CURRENT_LIST_DIR}/model/magic-wand.tflite")
+set(model_path "${CMAKE_CURRENT_LIST_DIR}/model/${CONFIG_ZPL_SAMPLE_TFLM_MODEL}.tflite")
 
 add_custom_command(
   OUTPUT

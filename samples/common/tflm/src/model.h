@@ -7,7 +7,6 @@
 
 #include <stdint.h>
 
-#define TFLITE_BUFFER_SIZE   40
 #define TFLITE_RESOLVER_SIZE 5
 
 void model_init(void);
