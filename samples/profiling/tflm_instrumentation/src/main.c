@@ -5,39 +5,79 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <zephyr/kernel.h>
+#include <zephyr/random/random.h>
+#include <generated/model_data.h>
+#include <model.h>
 
-/*
- * Copyright 2020 The TensorFlow Authors. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+#define N_SAMPLES     20
+#define INPUT_MIN_VAL 0.0f
+#define INPUT_MAX_VAL (2.0f * 3.14159265359f)
 
-#include "main_functions.h"
+#define INPUT_SCALE 0.024573976173996925f
+#define INPUT_ZERO  -128
 
-/* Increase number of loops to see full period of the sine curve */
-#define NUM_LOOPS 10
+#define OUTPUT_SCALE 0.008472034707665443f
+#define OUTPUT_ZERO  4
 
-/* This is the default main used on systems that have the standard C entry
- * point. Other devices (for example FreeRTOS or ESP32) that have different
- * requirements for entry code (like an app_main function) should specialize
- * this main.cc file in a target-specific subfolder.
- */
-int main(int argc, char *argv[])
+void loop();
+
+void rand_input(float *model_input);
+
+int main(void)
 {
-	setup();
-	/* Note: Modified from original while(true) to accommodate CI */
-	for (int i = 0; i < NUM_LOOPS; i++) {
+	int status = 0;
+
+	model_init();
+	status = model_load(model_data, model_data_len);
+	if (status) {
+		printk("Model load failed %d\n", status);
+		return 1;
+	}
+
+	for (int batch_index = 0; batch_index < N_SAMPLES; ++batch_index) {
 		loop();
 	}
+
 	return 0;
+}
+
+void loop()
+{
+	int status = 0;
+	float model_input;
+	uint8_t model_input_q;
+	float model_output;
+	uint8_t model_output_q;
+
+	rand_input(&model_input);
+	model_input_q = (model_input / INPUT_SCALE) + INPUT_ZERO;
+
+	status = model_load_input((uint8_t *)&model_input_q, sizeof(uint8_t));
+	if (status) {
+		printk("Model load input failed %d\n", status);
+		return;
+	}
+
+	status = model_run();
+	if (status) {
+		printk("Model run failed %d\n", status);
+		return;
+	}
+
+	status = model_get_output((uint8_t *)&model_output_q, sizeof(uint8_t));
+	if (status) {
+		printk("Model get output failed %d\n", status);
+		return;
+	}
+	model_output = (model_output_q - OUTPUT_ZERO) * OUTPUT_SCALE;
+
+	printk("x_value: %f, y_value: %f\n", (double)model_input, (double)model_output);
+}
+
+void rand_input(float *model_input)
+{
+	*model_input =
+		((INPUT_MAX_VAL - INPUT_MIN_VAL) * (float)sys_rand32_get() / (float)0xFFFFFFFF) +
+		INPUT_MIN_VAL;
 }
