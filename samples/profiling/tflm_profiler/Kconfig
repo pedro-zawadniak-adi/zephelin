@@ -1,0 +1,3 @@
+rsource "../../common/tflm/Kconfig"
+
+source "Kconfig.zephyr"
