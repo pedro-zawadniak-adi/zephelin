@@ -90,6 +90,12 @@ patches:
     author: Maciej Torhan
     email: mtorhan@antmicro.com
     date: 2025-06-09
+  - path: zephyr/ci/0001-exclude-kconfig-symbols-in-check.patch
+    sha256sum: 8708ebcdc89c0a466604284e29601d790a28e44764d1449d79d37d40743a6cc4
+    module: zephyr
+    author: Maciej Torhan
+    email: mtorhan@antmicro.com
+    date: 2025-08-28
   - path: tvm/0001-add-zephyr-files.patch
     sha256sum: 17c04ab2b67127fb09f4cf069900ce3f8e37e6ff7ca0d6d1c51c6f7f4a19ddec
     module: tvm
