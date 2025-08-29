@@ -59,9 +59,11 @@ west sdk install
 
 ## Running a sample project with Zephelin
 
-To collect traces and visualize them using Zephelin Trace Viewer, you can run [a simple demo with gesture recognition](./samples/demo), based on the data from an accelerometer in a Renode simulation.
+To collect traces and visualize them using Zephelin Trace Viewer, you can run [a simple demo with gesture recognition](./samples/demo), based on the data from an accelerometer.
 The default [configuration](./samples/demo/prj.conf) in this demo collects traces along with all possible additional information, like memory usage, die temperature, inference statistics, and more.
 One UART provides logs from the application, whereas the other UART returns CTF traces.
+
+### Running the demo in Renode simulation
 
 To build the demo, run:
 
@@ -98,6 +100,67 @@ west zpl-prepare-trace ./trace.ctf --tvm-model-path samples/common/tvm/model/mag
 The part `--tvm-model-path` is an input argument with the path to a TVM model graph, which is used to introduce additional model data to the TEF trace file metadata.
 
 To get an overview of the traces, load the output `tef_tvm_profiler.json` file in [Zephelin Trace Viewer](https://antmicro.github.io/zephelin-trace-viewer).
+
+### Running the demo on HW
+
+This demo can be also run on physical MAX32690 Evaluation Kit using ADXL345 accelerometer.
+The accelerometer can be connected to `i2c0` as follows:
+* `VIN` -> any 3v3 pin
+* `GND` -> any ground pin
+* `SDA` -> pin 7 on port `JH4`
+* `SCL` -> pin 8 on port `JH4`
+
+It is also required to connect following jumpers to enable `i2c0`:
+* `JP2`
+* `JP3`
+* `JP4`
+
+To program the board, connect MAX32625 Pico using USB cable to PC and via `SWD` header to the board.
+Then, connect another USB cable to `CN2` - this will be used to collect data via UART (`uart2`).
+Finally, to collect the traces, connect USB-UART converter to `uart0` using following pins:
+* `RX` - pin 11 on port `JH4`
+* `TX` - pin 12 on port `JH4`
+
+Alternatively, when USB-UART converter is not available, it is possible to switch UARTs in board overlay and collect traces the same way as logs - using `uart2`.
+
+To build the demo, run:
+```bash
+west build -p -b max32690evkit/max32690/m4 samples/demo
+```
+
+And then, to flash the board, run:
+```bash
+openocd \
+    -c 'source [find interface/cmsis-dap.cfg]' \
+    -c 'source [find target/max32690.cfg]' \
+    -c 'init' \
+    -c 'targets' \
+    -c 'reset init' \
+    -c 'flash write_image erase ./build/zephyr/zephyr.hex' \
+    -c 'reset run' \
+    -c 'shutdown'
+```
+using `openocd` from [Analog Devices MSDK](https://github.com/analogdevicesinc/msdk).
+
+After flashing there should be logged readings from sensor to the UART.
+```
+*** Booting Zephyr OS build v4.2.0-rc2-49-g732a3a5c6655 ***
+adxl345@53: x=+0.312 y=+0.906 z=+0.046
+adxl345@53: x=+0.296 y=+0.906 z=+0.031
+adxl345@53: x=+0.312 y=+0.890 z=+0.015
+adxl345@53: x=+0.312 y=+0.890 z=+0.015
+adxl345@53: x=+0.312 y=+0.890 z=+0.031
+...
+```
+
+To trigger gesture recognition, move the sensor.
+```
+...
+adxl345@53: x=-0.015 y=+0.374 z=+0.078
+model output: wing=1.000 ring=0.000 slope=0.000 negative=0.000
+```
+
+Then, the traces collected via UART can be analyzed the same way as in [Running the demo in Renode simulation](#running-the-demo-in-renode-simulation).
 
 ## Customizing and using Zephelin
 
