@@ -31,7 +31,7 @@ To turn it on, select one of the following runtime configuration types:
 
 #### UART commands
 
-UART commands runtime configuration can be enabled by selecting `CONFIG_ZPL_RUNTIME_CONFIG_UART` Kconfig option.
+UART commands runtime configuration can be enabled by selecting the Kconfig option `CONFIG_ZPL_RUNTIME_CONFIG_UART`.
 This option enables runtime configuration via shell module with custom configuration commands.
 
 To display the available configs type `help`:
@@ -59,8 +59,8 @@ mem_usage_trace disable
 
 #### Debug interface
 
-Debug runtime configuration can be enabled by selecting `CONFIG_ZPL_RUNTIME_CONFIG_DEBUG` Kconfig option.
-You can use the debug configuration either directly from GDB, or using the `zpl-debug-config` west command.
+Debug runtime configuration can be enabled by selecting the Kconfig option `CONFIG_ZPL_RUNTIME_CONFIG_DEBUG`.
+You can use the debug configuration either directly from GDB, or using the west command `zpl-debug-config`.
 To use it directly in GDB, make sure to load the ELF file with debug symbols.
 Then set the desired config to `0` (disable) or `1` (enable):
 
@@ -68,13 +68,13 @@ Then set the desired config to `0` (disable) or `1` (enable):
 set var debug_configs.<config> = <value>
 ```
 
-For example, to enable the memory usage tracing:
+For example, to enable the memory usage tracing, use the command:
 
 ```
 set var debug_configs.mem_usage_trace = 1
 ```
 
-You can also use the `zpl-debug-config` west command:
+You can also use the west command `zpl-debug-config`:
 
 ```
 usage: west zpl-debug-config [-h] elf_path config value
@@ -90,7 +90,7 @@ options:
   -h, --help  show this help message and exit
 ```
 
-For example, to enable the memory usage tracing:
+For example, to enable the memory usage tracing, use the command:
 
 ```
 west zpl-debug-config build/zephyr/zephyr.elf mem_usage_trace enable

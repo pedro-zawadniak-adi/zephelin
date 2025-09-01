@@ -60,7 +60,7 @@ west sdk install
 ## Running a sample project with Zephelin
 
 To collect traces and visualize them using Zephelin Trace Viewer, you can run [a simple demo with gesture recognition](./samples/demo), based on the data from an accelerometer in a Renode simulation.
-The default [configuration](./samples/demo/prj.conf) in this demo collects traces along with all possibile additional information, like memory usage, die temperature, inference statistics, and more.
+The default [configuration](./samples/demo/prj.conf) in this demo collects traces along with all possible additional information, like memory usage, die temperature, inference statistics, and more.
 One UART provides logs from the application, whereas the other UART returns CTF traces.
 
 To build the demo, run:
@@ -80,14 +80,14 @@ python ./scripts/run_renode.py \
     --timeout 10
 ```
 
-This demo will for 10 seconds until a timeout is reached.
-After this time, CTF traces returned over secondary UART will be stored in `trace.ctf`.
+This demo will run for 10 seconds, until a timeout is reached.
+After this time, CTF traces returned over the secondary UART will be stored in `trace.ctf`.
 
 :::{note}
 For trace collection on actual hardware, refer to [Trace collection](#trace-collection).
 :::
 
-The trace needs to be converted to the TEF format, so that it can be loaded in Zephelin Trace Viewer.
+The trace needs to be converted to the TEF format, so that it can be loaded into Zephelin Trace Viewer.
 
 For that purpose, run:
 

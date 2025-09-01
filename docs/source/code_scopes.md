@@ -16,9 +16,9 @@ ZPL_CODE_SCOPE_DEFINE(code_scope_name_1, false);
 ZPL_CODE_SCOPE_DEFINE(code_scope_name_2, true);
 ```
 
-The first parameter is the code scope name, which will be used as a handle for marking the code scopes.
+The first parameter is the name of the code scope, which will be used as a handle for marking the code scopes.
 The second parameter, the flag `is_enabled`, describes the initial state of the scope.
-The scope can be enabled or disabled at boot, but it can always be switched at runtime.
+The scope can be enabled or disabled at boot, but it can always be switched either way at runtime.
 
 ### Marking the code using `ZPL_MARK_CODE_SCOPE`
 
