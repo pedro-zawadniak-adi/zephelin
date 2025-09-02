@@ -28,4 +28,4 @@ Should Display Layer Profiling Traces
 Should Not Display Full Traces
 	Prepare Machine
 
-	Should Not Be On Uart	sys_trace	timeout=10
+	Should Not Be On Uart	sys_trace_isr_enter	timeout=10

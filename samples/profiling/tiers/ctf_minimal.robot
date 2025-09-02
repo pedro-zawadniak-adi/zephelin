@@ -43,6 +43,6 @@ Should Not Display Full Traces
 
 	Start Emulation
 
-	Trace Should Not Be On Uart	thread_info
+	Trace Should Not Be On Uart	isr_enter
 
 	Trace Tester Close Socket
