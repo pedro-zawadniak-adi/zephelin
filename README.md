@@ -4,6 +4,12 @@ Copyright (c) 2025 [Analog Devices, Inc.](https://www.analog.com/en/index.html)
 
 Copyright (c) 2025 [Antmicro](https://www.antmicro.com)
 
+<picture>
+  <source srcset="docs/source/imgs/zephelin-logo-light.png" media="(prefers-color-scheme: light)"/>
+  <source srcset="docs/source/imgs/zephelin-logo-dark.png" media="(prefers-color-scheme: dark)"/>
+  <img src="docs/source/imgs/zephelin-logo-light.png"/>
+</picture>
+
 Zephyr Profiling Library (ZPL), or Zephelin for short, is a library which enables capturing and reporting runtime performance metrics, for the profiling and detailed analysis of Zephyr applications, with a special focus on applications running AI/ML inference workloads.
 
 [Zephelin documentation](https://antmicro.github.io/zephelin) | [Trace Viewer](https://antmicro.github.io/zephelin-trace-viewer)
