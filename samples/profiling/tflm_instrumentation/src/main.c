@@ -10,7 +10,7 @@
 #include <generated/model_data.h>
 #include <model.h>
 
-#define N_SAMPLES     20
+#define N_SAMPLES     10
 #define INPUT_MIN_VAL 0.0f
 #define INPUT_MAX_VAL (2.0f * 3.14159265359f)
 
