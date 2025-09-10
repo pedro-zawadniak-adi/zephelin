@@ -212,10 +212,9 @@ def setup_parser(parser: argparse.ArgumentParser):
         default=None,
     )
     parser.add_argument(
-        "--instrumentation-ctf",
-        type=Path,
-        help="Path to the built Zephyr ELF, required for extracting symbols of memory regions",
-        default=None,
+        "--instrumentation",
+        help="Whether trace is received from instrumentation subsystem",
+        action="store_true",
     )
     return parser
 
@@ -263,18 +262,23 @@ def prepare(args: argparse.Namespace):
     """
     if not args.build_dir:
         args.build_dir = Path(".") / "build"
-    # Convert CTF
-    with prepare_dir(args.ctf_trace, args.zephyr_base) as tmp_dir:
-        results = ctf_to_tef(str(tmp_dir), False, CUSTOM_METADATA, CUSTOM_EVENTS)
-        tef_trace, thread_name = results.tef, results.thread_names
 
-    if args.instrumentation_ctf is not None:
+    tef_trace, thread_name = [], {}
+    if args.zephyr_elf_path is None:
+        args.zephyr_elf_path = Path(".") / "build" / "zephyr" / "zephyr.elf"
+
+    # Convert CTF
+    if args.instrumentation:
         with prepare_dir_for_instrumentation(
-            args.instrumentation_ctf, args.build_dir / "ctf_metadata"
+            args.ctf_trace, args.build_dir / "ctf_metadata"
         ) as tmp_dir:
             tef_trace += instrumentation_ctf_to_tef(
-                str(tmp_dir), args.zephyr_base, args.zephyr_elf_path
+                str(tmp_dir), args.zephyr_elf_path, args.zephyr_base
             ).tef["traceEvents"]
+    else:
+        with prepare_dir(args.ctf_trace, args.zephyr_base) as tmp_dir:
+            results = ctf_to_tef(str(tmp_dir), False, CUSTOM_METADATA, CUSTOM_EVENTS)
+            tef_trace, thread_name = results.tef, results.thread_names
 
     if thread_name:
         # Custom metadata event supported by Speedscope to associate ID with thread name
@@ -304,8 +308,6 @@ def prepare(args: argparse.Namespace):
 
     # Metadata with memory symbols
     if REGION_SIZES:
-        if args.zephyr_elf_path is None:
-            args.zephyr_elf_path = Path(".") / "build" / "zephyr" / "zephyr.elf"
         mem_symbols = extract_memory_symbols(args.zephyr_elf_path)
         tef_trace.append(
             {

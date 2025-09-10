@@ -403,10 +403,22 @@ def ctf_to_tef(
     return CTFConversionResult(converted, thread_name)
 
 
+def deduce_zephyr_base():
+    """
+    Deduces ZEPHYR_BASE path.
+
+    Returns
+    -------
+    Path
+        ZEPHYR_BASE path
+    """
+    return Path(__file__).parents[2] / "zephyr"
+
+
 def instrumentation_ctf_to_tef(
     path: str,
-    zephyr_base: str,
     instrumentation_elf: Path,
+    zephyr_base: str | None = None,
 ) -> CTFConversionResult:
     """
     Converts CTF instrumentation trace to the JSON in TEF format.
@@ -425,7 +437,10 @@ def instrumentation_ctf_to_tef(
     CTFConversionResult
         The converted trace and information about thread names
     """
-    assert zephyr_base is not None
+    zephyr_base = zephyr_base if zephyr_base else deduce_zephyr_base()
+    assert zephyr_base is not None and zephyr_base.exists(), (
+        f"Missing or invalid path to Zephyr repository: {zephyr_base}"
+    )
     sys.path.insert(1, f"{zephyr_base}/scripts")
     import zaru
 
@@ -462,7 +477,7 @@ def prepare_dir(trace: Path, zephyr_base: Path | None = None):
         tmp_metadata = tmp_dir / zephyr_metadata.name
         copy2(zephyr_metadata, tmp_metadata)
 
-        zpl_metadata = base / "zpl" / "metadata"
+        zpl_metadata = Path(__file__).parents[1] / "zpl" / "metadata"
         if not zpl_metadata.exists():
             print(f"Zephelin metadata ({zpl_metadata}) does not exist", file=sys.stderr)
             exit(1)
@@ -558,7 +573,7 @@ if __name__ == "__main__":
             args.ctf_trace, args.instrumentation_metadata
         ) as tmp_dir:
             converted = instrumentation_ctf_to_tef(
-                str(tmp_dir), args.zephyr_base, args.instrumentation_elf
+                str(tmp_dir), args.instrumentation_elf, args.zephyr_base
             ).tef
     else:
         with prepare_dir(args.ctf_trace, args.zephyr_base) as tmp_dir:
