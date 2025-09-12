@@ -21,6 +21,7 @@ from typing import Any
 import bt2
 
 _DEFAULT_TIMEOUT = 10.0
+_CTF_TRACE_START_TAG = b"_zpl_ctf_start__"
 
 
 class UnexpectedTraceFoundError(Exception):
@@ -159,6 +160,9 @@ class TraceTester:
             except TimeoutError:
                 # no new data
                 continue
+
+            if ctf_stream == _CTF_TRACE_START_TAG:
+                ctf_stream = b""
 
             self.ctf_path.write_bytes(ctf_stream)
 
