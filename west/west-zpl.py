@@ -8,12 +8,16 @@
 import signal
 import subprocess
 import time
+from pathlib import Path
 from textwrap import dedent
 
 import serial
 import usb.core
 import usb.util
+from tqdm import tqdm
 from west.commands import WestCommand
+
+CTF_TRACE_START_TAG = b"_zpl_ctf_start__"
 
 
 class ZplGdbCapture(WestCommand):
@@ -101,7 +105,15 @@ class ZplUartCapture(WestCommand):
 
         parser.add_argument("serial_port", help="Seral port")
         parser.add_argument("serial_baudrate", help="Seral baudrate")
-        parser.add_argument("output_path", help="Capture output path")
+        parser.add_argument("output_path", help="Capture output path", type=Path)
+        parser.add_argument(
+            "--send_enable",
+            action="store_true",
+            help=(
+                "Send 'enable' to device before collecting data to enable tracing, requires "
+                "CONFIG_TRACING_HANDLE_HOST_CMD to be enabled in the app"
+            ),
+        )
 
         return parser
 
@@ -113,17 +125,54 @@ class ZplUartCapture(WestCommand):
         else:
             self.die(f"Couldn't open port {ser.port}!")
 
-        ser.write("enable\r".encode())
+        trace_idx = 0
+        buff = b""
+        progress_bar = tqdm(unit="B", unit_scale=True)
+        f = open(args.output_path, "wb")
 
-        with open(args.output_path, "wb") as f:
+        tqdm.write(f"Writing trace to {args.output_path}")
+
+        if args.send_enable:
+            ser.write(b"enable\r\n")
+            tqdm.write("Sent b'enable'")
+
+        try:
             while True:
-                try:
-                    while ser.inWaiting() > 0:
-                        f.write(ser.read())
-                except KeyboardInterrupt:
-                    break
+                data = ser.read()
+                progress_bar.update(len(data))
 
-        ser.close()
+                if args.send_enable:
+                    f.write(data)
+                    continue
+
+                buff += data
+
+                if len(buff) > len(CTF_TRACE_START_TAG):
+                    buff = buff[-len(CTF_TRACE_START_TAG) :]
+
+                if CTF_TRACE_START_TAG in buff:
+                    tag_idx = buff.index(CTF_TRACE_START_TAG)
+                    f.write(buff[:tag_idx])
+                    f.close()
+                    output_path = args.output_path.with_stem(
+                        args.output_path.stem + f"_{trace_idx}"
+                    )
+                    tqdm.write(f"Found CTF trace start, writing trace to new file {output_path}")
+                    f = open(output_path, "wb")
+                    buff = buff[tag_idx + len(CTF_TRACE_START_TAG) :]
+                    progress_bar.reset()
+                    progress_bar.update(len(buff))
+                    f.write(buff)
+                    trace_idx += 1
+                else:
+                    f.write(data)
+
+        except KeyboardInterrupt:
+            pass
+        finally:
+            f.close()
+            ser.close()
+            progress_bar.close()
 
 
 class ZplUsbCapture(WestCommand):
