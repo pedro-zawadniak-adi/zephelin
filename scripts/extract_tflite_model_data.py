@@ -16,6 +16,7 @@ from pathlib import Path
 from subprocess import run
 from tempfile import TemporaryDirectory
 
+import numpy as np
 import yaml
 from ai_edge_litert.interpreter import Interpreter
 
@@ -122,13 +123,14 @@ def extract_model_data(model_path: Path, zephyr_base: Path | None = None) -> dic
     model_data["tensors"] = []
 
     for subgraph_idx in range(interpreter.num_subgraphs()):
-        for tensor in interpreter.get_tensor_details(0):
+        for tensor in interpreter.get_tensor_details(subgraph_idx):
             tensor_data = {}
             tensor_data["name"] = tensor["name"]
             tensor_data["subgraph_idx"] = subgraph_idx
             tensor_data["index"] = tensor["index"]
             tensor_data["shape"] = tensor["shape"].tolist()
             tensor_data["shape_signature"] = tensor["shape_signature"].tolist()
+            tensor_data["size"] = int(np.dtype(tensor["dtype"]).itemsize * tensor["shape"].prod())
             tensor_data["dtype"] = tensor["dtype"].__name__
             tensor_data["quantization"] = tensor["quantization"]
             tensor_data["quantization_parameters"] = {

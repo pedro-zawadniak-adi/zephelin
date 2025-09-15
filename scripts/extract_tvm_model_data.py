@@ -8,6 +8,7 @@ Provides microTVM model data extractor.
 """
 
 import argparse
+import math
 import re
 from pathlib import Path
 
@@ -62,6 +63,18 @@ def extract_model_data(model_graph_path: Path) -> dict:
 
             model_data[io_type].append(io_data)
 
+    try:
+        from tvm import DataType
+
+        def set_dtype_size(data: dict):
+            data["size"] = DataType(data["dtype"]).itemsize() * math.prod(data["shape"])
+
+    except ModuleNotFoundError:
+        print("TVM python package is not installed, skipping layer size calculation")
+
+        def set_dtype_size(data: dict):
+            pass
+
     model_data["tensors"] = []
     model_data["ops"] = []
     for node_idx, node in enumerate(model_graph["nodes"]):
@@ -71,6 +84,7 @@ def extract_model_data(model_graph_path: Path) -> dict:
         tensor_data["index"] = node_idx
         tensor_data["shape"] = shapes[node_idx][:]
         tensor_data["dtype"] = dtypes[node_idx][:]
+        set_dtype_size(tensor_data)
 
         model_data["tensors"].append(tensor_data)
 
