@@ -144,3 +144,9 @@ patches:
     author: Maciej Sobkowski
     email: msobkowski@antmicro.com
     date: 2025-06-09
+  - path: zephyr/instrumentation-subsystem/fixes/0001-instrumentation-make-runtime-configuration-of-trigge.patch
+    sha256sum: ddfb2d0aaa7026eff9a0b3c5adbc2e0b6f62b16fe9c084bbbacdc0950f78c7fc
+    module: zephyr
+    author: Maciej Sobkowski
+    email: msobkowski@antmicro.com
+    date: 2025-07-08
