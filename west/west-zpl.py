@@ -147,9 +147,6 @@ class ZplUartCapture(WestCommand):
 
                 buff += data
 
-                if len(buff) > len(CTF_TRACE_START_TAG):
-                    buff = buff[-len(CTF_TRACE_START_TAG) :]
-
                 if CTF_TRACE_START_TAG in buff:
                     tag_idx = buff.index(CTF_TRACE_START_TAG)
                     f.write(buff[:tag_idx])
@@ -164,11 +161,13 @@ class ZplUartCapture(WestCommand):
                     progress_bar.update(len(buff))
                     f.write(buff)
                     trace_idx += 1
-                else:
-                    f.write(data)
+
+                elif len(buff) > len(CTF_TRACE_START_TAG):
+                    f.write(buff[: -len(CTF_TRACE_START_TAG)])
+                    buff = buff[-len(CTF_TRACE_START_TAG) :]
 
         except KeyboardInterrupt:
-            pass
+            f.write(buff)
         finally:
             f.close()
             ser.close()
