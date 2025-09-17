@@ -46,6 +46,7 @@ def get_zephyr_chosen(chosen: str) -> str:
     raise Exception("Zephyr tracing UART not found")
 
 
+CTF_TRACE_START_TAG = b"_zpl_ctf_start__"
 ZEPHYR_DASHBOARD_URL = "https://zephyr-dashboard.renode.io/zephyr_sim/54b826336bae437f851fcba332481e24a7e1532d/0e512aebf21a8c51bda51fa67354277811f10a40"
 REPLS = {
     "max32690fthr": f"{ZEPHYR_DASHBOARD_URL}/max32690fthr_max32690_m4/hello_world/hello_world.repl",
@@ -140,15 +141,42 @@ if __name__ == "__main__":
     else:
         trace_f = None
 
+    trace_idx = 0
+    trace_buff = b""
+    trace_written = False
+
     print("Starting Renode simulation. Press CTRL+C to exit.")
     emulation.StartAll()
 
     simulation_start = time.time()
-    while True:
-        try:
+    try:
+        while True:
             traces = trace_serial.read_all()
             if trace_f is not None:
-                trace_f.write(traces)
+                trace_buff += traces
+
+                if CTF_TRACE_START_TAG in trace_buff:
+                    tag_idx = trace_buff.index(CTF_TRACE_START_TAG)
+                    trace_f.write(trace_buff[:tag_idx])
+                    trace_written = tag_idx > 0
+                    if trace_written:
+                        # open new file only if there were any traces written to previous
+                        trace_f.close()
+                        output_path = args.trace_output.with_stem(
+                            args.trace_output.stem + f"_{trace_idx}"
+                        )
+                        trace_f = open(output_path, "wb")
+                        trace_idx += 1
+                        trace_written = False
+
+                    trace_buff = trace_buff[tag_idx + len(CTF_TRACE_START_TAG) :]
+                    trace_f.write(trace_buff)
+
+                elif len(trace_buff) > len(CTF_TRACE_START_TAG):
+                    trace_f.write(trace_buff[: -len(CTF_TRACE_START_TAG)])
+                    trace_buff = trace_buff[-len(CTF_TRACE_START_TAG) :]
+                    trace_written = True
+
             if args.trace_output_stdout:
                 print(traces.decode(errors="ignore"), end="", flush=True)
 
@@ -156,23 +184,20 @@ if __name__ == "__main__":
                 logs = console_serial.read_all()
                 print(logs.decode(errors="ignore"), end="", flush=True)
 
-        except KeyboardInterrupt:
-            break
-        # pylint: disable-next=try-except-raise
-        except Exception:
-            print("Program failed, saving traces...")
-            if trace_f is not None:
-                trace_f.close()
-            trace_serial.close()
-            raise
         if args.timeout:
             if time.time() - simulation_start >= args.timeout:
-                break
+                raise KeyboardInterrupt
 
-    if trace_f is not None:
-        trace_f.close()
+    except KeyboardInterrupt:
+        if trace_f is not None:
+            trace_f.write(trace_buff)
+    except Exception:
+        print("Program failed, saving traces...")
+    finally:
+        if trace_f is not None:
+            trace_f.close()
 
-    trace_serial.close()
-    emulation.clear()
+        trace_serial.close()
+        emulation.clear()
 
     print("\nExiting...")
