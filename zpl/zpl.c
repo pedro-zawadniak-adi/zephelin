@@ -7,6 +7,7 @@
 
 #include <zpl/usb_backend.h>
 
+#include <zephyr/init.h>
 #include <zephyr/tracing/tracing.h>
 #include <zephyr/tracing/tracing_format.h>
 #include <zephyr/usb/usbd.h>
@@ -37,20 +38,27 @@ int zpl_init(void)
 
 #endif /* CONFIG_ZPL_TRACE_BACKEND_USB */
 
-#if defined(CONFIG_ZPL_TRACE_BACKEND_UART) && defined(CONFIG_ZPL_TRACE_FORMAT_CTF) && \
-	!defined(CONFIG_TRACING_HANDLE_HOST_CMD)
-
-	tracing_format_raw_data("_zpl_ctf_start__", 16);
-#endif /* defined(CONFIG_ZPL_TRACE_BACKEND_UART) && defined(CONFIG_ZPL_TRACE_FORMAT_CTF) &&
-	* !defined(CONFIG_TRACING_HANDLE_HOST_CMD)
-	*/
-
 	/* Emit event with current thread information, this allows to associate
 	 * ID with the main thread
 	 */
 	sys_port_trace_k_thread_info(k_current_get());
 	return 0;
 }
+
+#if defined(CONFIG_ZPL_TRACE_BACKEND_UART) && defined(CONFIG_ZPL_TRACE_FORMAT_CTF) && \
+	!defined(CONFIG_TRACING_HANDLE_HOST_CMD)
+
+int zpl_ctf_start_tag_emit(void)
+{
+	tracing_format_raw_data("_zpl_ctf_start__", 16);
+	return 0;
+}
+
+SYS_INIT(zpl_ctf_start_tag_emit, APPLICATION, 0);
+
+#endif /* defined(CONFIG_ZPL_TRACE_BACKEND_UART) && defined(CONFIG_ZPL_TRACE_FORMAT_CTF) &&
+	* !defined(CONFIG_TRACING_HANDLE_HOST_CMD)
+	*/
 
 #ifdef CONFIG_ZPL_TRACE_FORMAT_PLAINTEXT
 void sys_trace_k_heap_sys_k_malloc_enter(struct k_heap *h, size_t size) { }
