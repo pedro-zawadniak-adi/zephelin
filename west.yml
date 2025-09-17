@@ -8,13 +8,3 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: antmicro
       url-base: https://github.com/antmicro
-
-  projects:
-    - name: zephyr
-      remote: zephyrproject-rtos
-      revision: 732a3a5c66553969ea01bacec19e2820b9d6b2e2
-      import:
-        name-allowlist:
-          - cmsis_6
-          - hal_adi
-          - tflite-micro
