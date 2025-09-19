@@ -1,2 +1,4 @@
 *.tflite binary
 *.bin binary
+
+zephyr/patches/**/*.patch text eol=lf
